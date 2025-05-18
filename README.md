@@ -1,5 +1,4 @@
-![rust-node-modules-cleaner](https://videos.openai.com/vg-assets/assets%2Ftask_01jvhztgdtetbvzq0tn5c7bc5a%2F1747581831_img_3.webp?st=2025-05-18T13%3A38%3A59Z&se=2025-05-24T14%3A38%3A59Z&sks=b&skt=2025-05-18T13%3A38%3A59Z&ske=2025-05-24T14%3A38%3A59Z&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skoid=8ebb0df1-a278-4e2e-9c20-f2d373479b3a&skv=2019-02-02&sv=2018-11-09&sr=b&sp=r&spr=https%2Chttp&sig=BtRRUebicpWDwnPBNk8pUasRzJE04QTegMcBnMbDXLM%3D&az=oaivgprodscus)
-
+![header](./assets/logo.webp)
 
 
 
@@ -43,7 +42,7 @@ Existing tools either lack speed, configurability, or system-wide scanning capab
 - **Minimal dependencies** for a lightweight installation
 
 
-![install](https://videos.openai.com/vg-assets/assets%2Ftask_01jvj09jgke04rmkwe19w1mwt1%2F1747582321_img_0.webp?st=2025-05-18T13%3A40%3A10Z&se=2025-05-24T14%3A40%3A10Z&sks=b&skt=2025-05-18T13%3A40%3A10Z&ske=2025-05-24T14%3A40%3A10Z&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skoid=8ebb0df1-a278-4e2e-9c20-f2d373479b3a&skv=2019-02-02&sv=2018-11-09&sr=b&sp=r&spr=https%2Chttp&sig=EwCTk1YKC9fHQ4V11qIR%2B2ldxAwPPD%2FwYXYmY3rqc18%3D&az=oaivgprodscus)
+![install](./assets/install.webp)
 
 ## Installation
 
@@ -145,7 +144,7 @@ Example:
     }
 }
 ```
-![Roadmap](https://videos.openai.com/vg-assets/assets%2Ftask_01jvj0jdygfwjs525vc22ky6bp%2F1747582616_img_1.webp?st=2025-05-18T14%3A35%3A32Z&se=2025-05-24T15%3A35%3A32Z&sks=b&skt=2025-05-18T14%3A35%3A32Z&ske=2025-05-24T15%3A35%3A32Z&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skoid=8ebb0df1-a278-4e2e-9c20-f2d373479b3a&skv=2019-02-02&sv=2018-11-09&sr=b&sp=r&spr=https%2Chttp&sig=HLReQK1dL1jR9E1ZRcfKCZG8Z%2Fk4CCM%2FKTGEtGHmQ50%3D&az=oaivgprodscus)
+![Roadmap](./assets/roadmap.webp)
 ## Roadmap
 
 - [ ] Improve scanning algorithm efficiency
@@ -214,3 +213,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
+
+Only tested with Linux, might work on macOS, most definetly will not work on Windows
+![Linux-Only](./assets/linux/webp)
