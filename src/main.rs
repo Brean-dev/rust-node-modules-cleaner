@@ -3,25 +3,46 @@ use std::fs::File;
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::io::BufReader;
-
-
 use walkdir::{WalkDir, DirEntry};
+use clap::Parser;
+use env_logger::Builder;
+use log::{error, info, trace, debug, LevelFilter};
+use once_cell::sync::Lazy;
+use std::sync::Mutex;
 
-fn is_node_modules(entry: &DirEntry) -> bool {
-    entry.file_name() == "node_modules" && entry.file_type().is_dir()
-}
-
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 struct RuleSet{
     patterns: Vec<String>,
     ignore: Vec<String>,
 }
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 struct Config{
     #[serde(rename = "$default")]
     default: String,
     #[serde(flatten)]
     rules: HashMap<String, RuleSet>,
+}
+
+#[derive(Default, Debug, Clone, PartialEq, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct PaternHits {
+    pub patterns: Vec<String>,
+}
+
+#[derive(Parser, Debug)]
+#[command(version, about, long_about = None)]
+struct Cli{
+//arguments to look for 
+    #[arg(short, long)]
+    arguments: String,
+     #[command(flatten)]
+    verbose: clap_verbosity_flag::Verbosity,
+}
+static LOG_LEVEL: Lazy<Mutex<String>> = Lazy::new(|| Mutex::new(String::from("INFO")));
+
+
+fn is_node_modules(entry: &DirEntry) -> bool {
+    entry.file_name() == "node_modules" && entry.file_type().is_dir()
 }
 
 // Read pattern from patterns.json 
@@ -53,12 +74,12 @@ fn read_patterns() -> Result<Config, Box<dyn std::error::Error>>{
 fn matching_pattern(paths: &Vec<PathBuf>) {
     let mut results: i32 = 0;
     let mut safe_paths_array: Vec<PathBuf> = Vec::new();
+        let mut pattern_hits: HashMap<String, i32> = HashMap::new();
     match read_patterns() {
         Ok(config) => {
-            println!("Successfully loaded patterns config");
-
-            for path in paths {
-                //println!("Checking path: {}", path.display());
+            info!("Successfully loaded patterns config");            
+                for path in paths {
+                trace!("Checking path: {}", path.display());
 
                 // Make sure "safe" exists in the rules map
                 if let Some(safe_ruleset) = config.rules.get("safe") {
@@ -66,26 +87,41 @@ fn matching_pattern(paths: &Vec<PathBuf>) {
                     for pattern in &safe_ruleset.patterns {
                         if let Some(path_str) = path.to_str() {
                             if path_str.contains(pattern) {
-                                //println!("Bingo! Path {} matches pattern {}", path.display(), pattern);
+                                trace!("Bingo! Path {} matches pattern {}", path.display(), pattern);
                                 safe_paths_array.push(path.to_path_buf());                                
+                                *pattern_hits.entry(pattern.clone()).or_insert(0) += 1;
                                 results+=1;
                             }
                         }
                     }
                 } else {
-                    println!("No 'safe' ruleset found in configuration");
+                    error!("No 'safe' ruleset found in configuration");
                 }
             }
         },
         Err(e) => {
-            eprintln!("Error loading patterns: {}", e);
+            error!("Error loading patterns: {}", e);
         }
 
     }
-    println!("safe_paths_array Contains: {:?} items ", safe_paths_array.len().to_string());
-    println!("Found {:?} files which match the `safe` pattern", results);
+    debug!("safe_paths_array Contains: {:?} items ", safe_paths_array.len().to_string());
+    info!("Found {:?} files which match the `safe` pattern", results);
+    if *LOG_LEVEL.lock().unwrap() == "DEBUG"{
+        iter_pattern_hits(&pattern_hits);
+    }
 }
 
+
+fn iter_pattern_hits(hits: &HashMap<String, i32>){
+    let mut items: Vec<_> = hits.iter().collect();
+    items.sort_by_key(|&(k, _)| k);
+
+    debug!("Pattern hits:");
+    for (k, v) in items {
+        debug!("{:<20} {}", k, v);
+    }
+
+}
 // Itterates through all directories from root '/'
 // Uses built in WalkDir for some extra speed(god knows we need that when itterating the file
 // system)
@@ -100,13 +136,13 @@ fn iterate_directories() -> Vec<PathBuf>{
         .filter_map(Result::ok)
     {
         if is_node_modules(&entry) {
-            //println!("{}", entry.path().display());
+            trace!("{}", entry.path().display());
             matches.push(entry.path().to_path_buf());
             _x+=1;
         }
     }
-    println!("Total ammount of directories found: {:?}", _x);
-    //println!("The array in question \r {:?}", matches);
+    info!("Total ammount of directories found: {:?}", _x);
+    trace!("The array in question \r {:?}", matches);
     return matches;
 }
 
@@ -123,7 +159,7 @@ fn iterate_matching_directories (directories: &Vec<PathBuf>) -> Vec<PathBuf> {
                 matching_files.push(entry.path().to_path_buf());
             },
             Err(e) => {
-                eprintln!("Error accessing entry: {}", e);
+                error!("Error accessing entry: {}", e);
             }
           }
        }
@@ -131,12 +167,6 @@ fn iterate_matching_directories (directories: &Vec<PathBuf>) -> Vec<PathBuf> {
     return matching_files;
 }
 
-fn main() {
-    // Triple nested function calling which in turn all itterate in their own way 
-    // I know I am cringing too, I will most defintely have a look at this later on, once I have
-    // gained more experience with Rust
-    matching_pattern(&iterate_matching_directories(&iterate_directories()));
-}
 
 
 // Ignoring the following paths, either at root 
@@ -159,3 +189,17 @@ fn is_ignored(entry: &DirEntry) -> bool {
         || path.starts_with("/usr")
 }
 
+
+fn main() {
+    // Triple nested function calling which in turn all itterate in their own way 
+    // I know I am cringing too, I will most defintely have a look at this later on, once I have
+    // gained more experience with Rust
+    let cli = Cli::parse();
+    let mut builder = Builder::from_default_env();
+    builder
+        .filter_level(cli.verbose.log_level_filter())
+        .init();
+    *LOG_LEVEL.lock().unwrap() = cli.verbose.log_level_filter().to_string();
+    matching_pattern(&iterate_matching_directories(&iterate_directories()));
+
+}
