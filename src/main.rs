@@ -1,12 +1,10 @@
 use std::path::{PathBuf};
-use std::fs::File;
 use serde::Deserialize;
 use std::collections::HashMap;
-use std::io::BufReader;
 use walkdir::{WalkDir, DirEntry};
 use clap::Parser;
 use env_logger::Builder;
-use log::{error, info, trace, debug, LevelFilter};
+use log::{error, info, trace, debug};
 use once_cell::sync::Lazy;
 use std::sync::Mutex;
 
@@ -55,12 +53,9 @@ fn is_node_modules(entry: &DirEntry) -> bool {
 //            ".npmignore",
 //            "license",
 
-fn read_patterns() -> Result<Config, Box<dyn std::error::Error>>{
-    let current_dir = std::env::current_dir()?;
-    let patterns_path = current_dir.join("patterns.json");
-    let file = File::open(&patterns_path)?;
-    let reader = BufReader::new(file);
-    let config: Config = serde_json::from_reader(reader)?;
+fn read_patterns() -> Result<Config, Box<dyn std::error::Error>> {
+    let data = include_str!("../patterns.json");
+    let config: Config = serde_json::from_str(data)?;
     Ok(config)
 }
 
