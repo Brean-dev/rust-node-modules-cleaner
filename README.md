@@ -215,4 +215,5 @@ SOFTWARE.
 ```
 
 Only tested with Linux, might work on macOS, most definetly will not work on Windows
-![Linux-Only]https://raw.githubusercontent.com/Breinss/rust-node-modules-cleaner/refs/heads/main/assets/linux.webp)
+
+![Linux-Only](https://raw.githubusercontent.com/Breinss/rust-node-modules-cleaner/refs/heads/main/assets/linux.webp)
