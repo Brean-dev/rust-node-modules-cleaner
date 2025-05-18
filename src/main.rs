@@ -1,12 +1,14 @@
 use std::path::{PathBuf};
 use serde::Deserialize;
 use std::collections::HashMap;
-use walkdir::{WalkDir, DirEntry};
+//use walkdir::{DirEntry};
 use clap::Parser;
 use env_logger::Builder;
 use log::{error, info, trace, debug};
 use once_cell::sync::Lazy;
 use std::sync::Mutex;
+use jwalk::{WalkDir, Parallelism, DirEntry};
+use rayon::prelude::*;
 
 #[derive(Debug, Deserialize, Clone)]
 struct RuleSet{
@@ -39,10 +41,9 @@ struct Cli{
 static LOG_LEVEL: Lazy<Mutex<String>> = Lazy::new(|| Mutex::new(String::from("INFO")));
 
 
-fn is_node_modules(entry: &DirEntry) -> bool {
-    entry.file_name() == "node_modules" && entry.file_type().is_dir()
+fn is_node_modules<C: jwalk::ClientState>(entry: &DirEntry<C>) -> bool {
+    entry.file_name.to_string_lossy() == "node_modules"
 }
-
 // Read pattern from patterns.json 
 // Returns the JSON as a struct ::Config 
 // Calling, read_patterns -> returns Config 
@@ -121,47 +122,69 @@ fn iter_pattern_hits(hits: &HashMap<String, i32>){
 // Uses built in WalkDir for some extra speed(god knows we need that when itterating the file
 // system)
 // If 'is_node_module()' returns true it pushes it into a new array 
-fn iterate_directories() -> Vec<PathBuf>{
-    let mut _x: i32 = 0;
-    let mut matches: Vec<PathBuf> = Vec::new();
 
-    for entry in WalkDir::new("/")
-        .into_iter()
-        .filter_entry(|e| !is_ignored(e))
-        .filter_map(Result::ok)
-    {
-        if is_node_modules(&entry) {
-            trace!("{}", entry.path().display());
-            matches.push(entry.path().to_path_buf());
-            _x+=1;
+fn iterate_matching_directories(directories: &Vec<PathBuf>) -> Vec<PathBuf> {
+    let mut matching_files: Vec<PathBuf> = Vec::new();
+
+    for directory in directories {
+        // jwalk::WalkDir creates a parallel iterator over directory entries
+        for entry_result in WalkDir::new(directory) {
+            match entry_result {
+                Ok(entry) => {
+                    matching_files.push(entry.path().to_path_buf());
+                },
+                Err(e) => {
+                    error!("Error accessing entry: {}", e);
+                }
+            }
         }
     }
-    info!("Total ammount of directories found: {:?}", _x);
-    trace!("The array in question \r {:?}", matches);
-    return matches;
+    
+    matching_files
 }
-
 
 // itterates through the node_module searching for all files, storing them into an new array. 
 // for the sake of optimizing this I will revisit this and probally check patterns at the same time
-fn iterate_matching_directories (directories: &Vec<PathBuf>) -> Vec<PathBuf> {
-    let mut matching_files: Vec<PathBuf> = Vec::new();
+use std::sync::atomic::{AtomicI32, Ordering};
 
-    for i in 0..directories.len(){
-       for entry_result in WalkDir::new(&directories[i]){
-        match entry_result{
-            Ok(entry) => {
-                matching_files.push(entry.path().to_path_buf());
-            },
-            Err(e) => {
-                error!("Error accessing entry: {}", e);
+
+fn iterate_directories() -> Vec<PathBuf> {
+    // Use atomic counter for thread safety
+    let counter = AtomicI32::new(0);
+    // Use mutex for thread-safe collection
+    let matches = Mutex::new(Vec::new());
+    
+    // Process root directories in parallel - this is the key optimization
+    let root_dirs = [
+        "/home", "/var", "/opt", "/usr/local", "/usr/share", "/etc", 
+        "/tmp", "/mnt"
+    ];
+    
+    root_dirs.par_iter().for_each(|root| {
+        // Configure jwalk for maximum performance
+        for entry_result in WalkDir::new(root)
+            .skip_hidden(false)
+            .follow_links(false)  // Don't follow symlinks for speed
+            .parallelism(Parallelism::RayonNewPool(0)) // Use Rayon's thread pool
+        {
+            if let Ok(entry) = entry_result {
+                // Skip ignored entries
+                if entry.file_name.to_string_lossy() == "node_modules" {
+                    trace!("Found node_modules: {}", entry.path().display());
+                    counter.fetch_add(1, Ordering::Relaxed);
+                    matches.lock().unwrap().push(entry.path());
+                }
             }
-          }
-       }
-    }
-    return matching_files;
+        }
+    });
+    
+    let final_matches = matches.into_inner().unwrap();
+    let _x = counter.load(Ordering::Relaxed);
+    
+    info!("Total amount of directories found: {:?}", _x);
+    trace!("The array in question \r {:?}", final_matches);
+    final_matches
 }
-
 
 
 // Ignoring the following paths, either at root 
@@ -170,7 +193,7 @@ fn iterate_matching_directories (directories: &Vec<PathBuf>) -> Vec<PathBuf> {
 // string
 //
 // This being Linux it is sensitive to capital letters
-fn is_ignored(entry: &DirEntry) -> bool {
+fn is_ignored<C: jwalk::ClientState>(entry: &DirEntry<C>) -> bool {
     let path = entry.path();
     // Add other paths to ignore as needed
     path.starts_with("/proc")
@@ -186,6 +209,8 @@ fn is_ignored(entry: &DirEntry) -> bool {
 
 
 fn main() {
+    use std::time::Instant;
+    let now = Instant::now();
     // Triple nested function calling which in turn all itterate in their own way 
     // I know I am cringing too, I will most defintely have a look at this later on, once I have
     // gained more experience with Rust
@@ -195,6 +220,9 @@ fn main() {
         .filter_level(cli.verbose.log_level_filter())
         .init();
     *LOG_LEVEL.lock().unwrap() = cli.verbose.log_level_filter().to_string();
+    {
     matching_pattern(&iterate_matching_directories(&iterate_directories()));
-
+    }
+    let elapsed = now.elapsed();
+    println!("Elapsed: {:.2?}", elapsed);
 }
