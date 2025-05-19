@@ -1,6 +1,6 @@
 [package]
 name = "node-cleaner"
-version = "0.1.1"
+version = "0.1.3"
 edition = "2024"
 
 [dependencies]
@@ -16,6 +16,7 @@ once_cell = "1.18"
 
 # Optional - for even faster hash maps
 fxhash = { version = "0.2", optional = true }
+chrono = "0.4.41"
 
 [features]
 use-fxhash = ["fxhash"]

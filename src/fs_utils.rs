@@ -1,60 +1,21 @@
-use std::path::{Path, PathBuf};
+use std::path::{PathBuf};
 use std::time::Instant;
 use jwalk::WalkDirGeneric;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex, MutexGuard};
-use walkdir::WalkDir;
-use std::collections::HashMap;
+use std::collections::{HashSet};
 use std::cell::RefCell;
-use serde::Deserialize;
-use clap::Parser;
-use log::{error, info, trace, debug};
-use once_cell::sync::Lazy;
+use log::info;
 
-// Import fxhash if available, otherwise use regular HashMap
-#[cfg(feature = "use-fxhash")]
-use fxhash::{FxHashMap, FxHashSet};
+use crate::matcher;
 
 // Thread-local storage for batching path operations
 thread_local! {
     static LOCAL_NODE_MODULES: RefCell<Vec<String>> = RefCell::new(Vec::with_capacity(50));
 }
 
-// Original config structures
-#[derive(Debug, Deserialize, Clone)]
-struct RuleSet {
-    patterns: Vec<String>,
-    ignore: Vec<String>,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-struct Config {
-    #[serde(rename = "$default")]
-    default: String,
-    #[serde(flatten)]
-    rules: HashMap<String, RuleSet>,
-}
-
-#[derive(Default, Debug, Clone, PartialEq, Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct PaternHits {
-    pub patterns: Vec<String>,
-}
-
-#[derive(Parser, Debug)]
-#[command(version, about, long_about = None)]
-struct Cli {
-    //arguments to look for 
-    #[arg(short, long)]
-    arguments: String,
-    #[command(flatten)]
-    verbose: clap_verbosity_flag::Verbosity,
-}
-
-static LOG_LEVEL: Lazy<Mutex<String>> = Lazy::new(|| Mutex::new(String::from("INFO")));
-
 // Optimized path ignoring function for jwalk
-fn is_ignored<C: jwalk::ClientState>(entry: &jwalk::DirEntry<C>) -> bool {
+pub fn is_ignored<C: jwalk::ClientState>(entry: &jwalk::DirEntry<C>) -> bool {
     let path = entry.path();
     
     // Fast prefix check for common system directories
@@ -79,151 +40,8 @@ fn is_ignored<C: jwalk::ClientState>(entry: &jwalk::DirEntry<C>) -> bool {
     false
 }
 
-
-
-// Your original read_patterns function
-fn read_patterns() -> Result<Config, Box<dyn std::error::Error>> {
-    let data = include_str!("../patterns.json");
-    let config: Config = serde_json::from_str(data)?;
-    Ok(config)
-}
-
-// Original iteration function using your pattern matcher
-fn iter_pattern_hits(hits: &HashMap<String, i32>) {
-    let mut items: Vec<_> = hits.iter().collect();
-    items.sort_by_key(|&(k, _)| k);
-
-    debug!("Pattern hits:");
-    for (k, v) in items {
-        debug!("{:<20} {}", k, v);
-    }
-}
-
-fn matching_pattern(paths: &Vec<PathBuf>) {
-    info!("Matching patterns for {:?} node_modules directories", paths.len());
-    let mut results: i32 = 0;
-    let mut safe_paths_array: Vec<PathBuf> = Vec::with_capacity(paths.len() * 10); // Pre-allocate more space
-    let mut pattern_hits: HashMap<String, i32> = HashMap::new();
-    
-    match read_patterns() {
-        Ok(config) => {
-            info!("Successfully loaded patterns config");            
-            
-            // Get the safe ruleset once outside the loop
-            if let Some(safe_ruleset) = config.rules.get("safe") {
-                // For each node_modules directory
-                for node_modules_path in paths {
-                    trace!("Walking through directory: {}", node_modules_path.display());
-                    
-                    // Actually walk through the directory and check each file
-                    for entry_result in WalkDir::new(node_modules_path)
-                        .into_iter()
-                        .filter_map(Result::ok) {
-                        
-                        let entry_path = entry_result.path();
-                        trace!("Checking path: {}", entry_path.display());
-                        
-                        // Only process files (not directories)
-                        if entry_result.file_type().is_file() {
-                            let path_str = entry_path.to_str().unwrap_or("");
-                            let file_name = entry_path.file_name()
-                                .and_then(|n| n.to_str())
-                                .unwrap_or("");
-                            
-                            // Check against each pattern
-                            for pattern in &safe_ruleset.patterns {
-                                // Try to match against full path and file name
-                                let matches = match_path_with_pattern(path_str, pattern) || 
-                                              match_path_with_pattern(file_name, pattern);
-                                
-                                if matches {
-                                    trace!("Bingo! File {} matches pattern {}", entry_path.display(), pattern);
-                                    safe_paths_array.push(entry_path.to_path_buf());
-                                    *pattern_hits.entry(pattern.clone()).or_insert(0) += 1;
-                                    results += 1;
-                                    break; // Move to next file after first match
-                                }
-                            }
-                        }
-                    }
-                }
-            } else {
-                error!("No 'safe' ruleset found in configuration");
-            }
-        },
-        Err(e) => {
-            error!("Error loading patterns: {}", e);
-        }
-    }
-    
-    debug!("safe_paths_array Contains: {} items", safe_paths_array.len());
-    info!("Found {} files which match the `safe` pattern", results);
-    if *LOG_LEVEL.lock().unwrap() == "DEBUG" {
-        iter_pattern_hits(&pattern_hits);
-    }
-}
-
-// Enhanced pattern matching function with support for wildcards and case-insensitivity
-fn match_path_with_pattern(path_str: &str, pattern: &str) -> bool {
-    // Case 1: If pattern starts and ends with '/', it's meant to match a directory
-    if pattern.starts_with('/') && pattern.ends_with('/') {
-        let dir_name = &pattern[1..pattern.len()-1]; // Remove slashes
-        
-        // Convert to platform-specific path separators
-        #[cfg(not(windows))]
-        let normalized_path = path_str;
-        
-        #[cfg(windows)]
-        let normalized_path = path_str.replace('\\', "/");
-        
-        // Check if `/dir_name/` exists in the path
-        let dir_pattern = format!("/{}/", dir_name);
-        return normalized_path.contains(&dir_pattern);
-    }
-    
-    // Case 2: Handle wildcard patterns like "readme*"
-    else if pattern.contains('*') {
-        let path_lower = path_str.to_lowercase();
-        let parts: Vec<&str> = pattern.split('*').collect();
-        
-        // Simple wildcard matching
-        if parts.len() == 2 {
-            let prefix = parts[0].to_lowercase();
-            let suffix = parts[1].to_lowercase();
-            
-            if suffix.is_empty() {
-                // Pattern like "readme*" - just check for prefix
-                return path_lower.contains(&prefix);
-            } else {
-                // Pattern like "read*me" - check for both parts in order
-                return path_lower.contains(&prefix) && 
-                       path_lower.contains(&suffix) &&
-                       path_lower.find(&prefix).unwrap_or(usize::MAX) < 
-                       path_lower.find(&suffix).unwrap_or(usize::MAX);
-            }
-        }
-    }
-    
-    // Case 3: Check for exact filename match (case insensitive)
-    else {
-        let path = Path::new(path_str);
-        if let Some(file_name) = path.file_name() {
-            if let Some(file_str) = file_name.to_str() {
-                if file_str.to_lowercase() == pattern.to_lowercase() {
-                    return true;
-                }
-            }
-        }
-        
-        // Case 4: Check for pattern as substring of path (case insensitive)
-        return path_str.to_lowercase().contains(&pattern.to_lowercase());
-    }
-    
-    false
-}
-
 // Optimized function to convert string to PathBuf
-fn convert_string_to_pathbuf(mutex: &MutexGuard<Vec<String>>) -> Vec<PathBuf> {
+pub fn convert_string_to_pathbuf(mutex: &MutexGuard<Vec<String>>) -> Vec<PathBuf> {
     let mut result = Vec::with_capacity(mutex.len());
     for s in mutex.iter() {
         result.push(PathBuf::from(s));
@@ -231,8 +49,8 @@ fn convert_string_to_pathbuf(mutex: &MutexGuard<Vec<String>>) -> Vec<PathBuf> {
     result
 }
 
-// Optimized walker function
-fn walk_directories() {
+// Main directory walker function
+pub fn walk_directories() {
     let start = Instant::now();
     let root_path = "/";
     
@@ -253,9 +71,9 @@ fn walk_directories() {
     let node_modules_locations_clone = Arc::clone(&node_modules_locations);
 
     // Use HashSet for faster path lookups
-    let skip_paths = Arc::new(Mutex::new(std::collections::HashSet::<String>::default()));    
-
+    let skip_paths = Arc::new(Mutex::new(HashSet::<String>::default()));    
     let skip_paths_clone = Arc::clone(&skip_paths);
+    
     // Configure walker
     let walker = WalkDirGeneric::<((), ())>::new(root_path)
         .skip_hidden(false)
@@ -417,30 +235,5 @@ fn walk_directories() {
     info!("Reading patterns!");
 
     let locations_pathbuff = convert_string_to_pathbuf(&locations);
-    matching_pattern(&locations_pathbuff);
-}
-
-
-fn main() {
-    let start = Instant::now();
-    
-    // Parse CLI arguments
-    let cli = Cli::parse();
-    
-    // Initialize logger
-    let mut builder = env_logger::Builder::from_default_env();
-    builder
-        .filter_level(cli.verbose.log_level_filter())
-        .init();
-        
-    *LOG_LEVEL.lock().unwrap() = cli.verbose.log_level_filter().to_string();
-    
-    // Option 1: Use the new optimized walk_directories
-    walk_directories();
-    
-    // Option 2: Use optimized versions of the original functions
-    // matching_pattern(&iterate_matching_directories_optimized(&iterate_directories_optimized()));
-    
-    let elapsed = start.elapsed();
-    info!("Total execution time: {:.2?}", elapsed);
+    matcher::matching_pattern(&locations_pathbuff);
 }

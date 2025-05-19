@@ -3,6 +3,7 @@
     
     "safe": {
         "patterns": [
+            ".cache",
             "readme*",
             ".npmignore",
             "license",
