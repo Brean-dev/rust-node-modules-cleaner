@@ -10,7 +10,6 @@ use serde::Deserialize;
 use clap::Parser;
 use log::{error, info, trace, debug};
 use once_cell::sync::Lazy;
-use clap_verbosity_flag::{LogLevel, Verbosity};
 
 // Import fxhash if available, otherwise use regular HashMap
 #[cfg(feature = "use-fxhash")]
@@ -20,13 +19,7 @@ use fxhash::{FxHashMap, FxHashSet};
 thread_local! {
     static LOCAL_NODE_MODULES: RefCell<Vec<String>> = RefCell::new(Vec::with_capacity(50));
 }
-#[derive(Debug, Clone, Copy)]
-struct InfoLevel;
-impl LogLevel for InfoLevel {
-    fn default() -> Option<log::Level> {
-        Some(log::Level::Info)
-    }
-}
+
 // Original config structures
 #[derive(Debug, Deserialize, Clone)]
 struct RuleSet {
@@ -51,12 +44,11 @@ struct PaternHits {
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Cli {
-    // Make arguments optional
-    #[arg(short, long, required = false)]
-    arguments: Option<String>,
-    
+    //arguments to look for 
+    #[arg(short, long)]
+    arguments: String,
     #[command(flatten)]
-    verbose: Verbosity<InfoLevel>,
+    verbose: clap_verbosity_flag::Verbosity,
 }
 
 static LOG_LEVEL: Lazy<Mutex<String>> = Lazy::new(|| Mutex::new(String::from("INFO")));
@@ -435,7 +427,6 @@ fn main() {
     // Parse CLI arguments
     let cli = Cli::parse();
     
-
     // Initialize logger
     let mut builder = env_logger::Builder::from_default_env();
     builder
@@ -443,12 +434,6 @@ fn main() {
         .init();
         
     *LOG_LEVEL.lock().unwrap() = cli.verbose.log_level_filter().to_string();
-    
-    // Example of using the optional argument
-    if let Some(args) = &cli.arguments {
-        info!("Using provided arguments: {}", args);
-    } else {
-    }
     
     // Option 1: Use the new optimized walk_directories
     walk_directories();
