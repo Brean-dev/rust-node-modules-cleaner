@@ -1,9 +1,9 @@
 use std::path::{Path, PathBuf};
 use std::time::Instant;
-use jwalk::{WalkDirGeneric, DirEntry};
+use jwalk::WalkDirGeneric;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex, MutexGuard};
-use walkdir::{WalkDir, DirEntry as WalkDirEntry};
+use walkdir::WalkDir;
 use std::collections::HashMap;
 use std::cell::RefCell;
 use serde::Deserialize;
@@ -14,8 +14,6 @@ use once_cell::sync::Lazy;
 // Import fxhash if available, otherwise use regular HashMap
 #[cfg(feature = "use-fxhash")]
 use fxhash::{FxHashMap, FxHashSet};
-#[cfg(not(feature = "use-fxhash"))]
-use std::collections::{HashMap as FxHashMap, HashSet as FxHashSet};
 
 // Thread-local storage for batching path operations
 thread_local! {
