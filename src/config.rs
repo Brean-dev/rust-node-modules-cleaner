@@ -26,7 +26,7 @@ pub struct PaternHits {
 
 // Function to read and parse patterns from the JSON file
 pub fn read_patterns() -> Result<Config, Box<dyn Error>> {
-    let data = include_str!("../patterns.json");
+    let data = include_str!("./patterns.json");
     let config: Config = serde_json::from_str(data)?;
     Ok(config)
 }
