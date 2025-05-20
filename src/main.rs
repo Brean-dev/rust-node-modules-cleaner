@@ -7,6 +7,7 @@ mod utils;
 use std::time::Instant;
 use clap::Parser;
 use log::info;
+use crate::matcher::{DIRS, FILES};
 
 fn main() {
     let start = Instant::now();
@@ -22,7 +23,18 @@ fn main() {
     
     // Walk directories to find node_modules
     fs_utils::walk_directories();
-    
+    let dirs = DIRS.lock().unwrap();    
+    let files = FILES.lock().unwrap();    
     let elapsed = start.elapsed();
-    info!("Total execution time: {:.2?}", elapsed);
+    info!("Found {} directories", dirs.len());
+    info!("Found {} files", files.len());
+    
+    // Show up to 10 entries from the files collection
+    let entries_to_show = std::cmp::min(10, files.len());
+    info!("Showing first {} file entries:", entries_to_show);
+    for (i, file) in files.iter().take(entries_to_show).enumerate() {
+        info!("  {}. {}", i + 1, file.display());
+    }
+    
+    info!("Total execution time: {:.2?}", elapsed); 
 }
