@@ -27,7 +27,7 @@ pub fn is_ignored<C: jwalk::ClientState>(entry: &jwalk::DirEntry<C>) -> bool {
     }
     
     // Fast component check to avoid repeated iteration
-    let mut components_iter = path.components();
+    let components_iter = path.components();
     for component in components_iter {
         if let std::path::Component::Normal(name) = component {
             let name_str = name.to_string_lossy();
