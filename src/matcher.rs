@@ -92,6 +92,7 @@ pub fn matching_pattern(paths: &Vec<PathBuf>) {
 
 // Enhanced pattern matching function with support for wildcards and case-insensitivity
 pub fn match_path_with_pattern(path_str: &str, pattern: &str) -> bool {
+    
     let mut match_result = false;
     let mut match_reason = String::new();
     
@@ -231,4 +232,10 @@ pub fn is_exact_path_segment(path: &str, segment: &str) -> bool {
     let path_segments: Vec<&str> = normalized_path.split('/').collect();
     
     path_segments.iter().any(|&s| s.to_lowercase() == segment.to_lowercase())
+}
+
+
+
+fn split_by_type(path: Vec<Path>){
+    
 }
