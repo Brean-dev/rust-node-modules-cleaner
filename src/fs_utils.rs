@@ -28,7 +28,7 @@ pub fn is_ignored<C: jwalk::ClientState>(entry: &jwalk::DirEntry<C>) -> bool {
     
     // Fast component check to avoid repeated iteration
     let mut components_iter = path.components();
-    while let Some(component) = components_iter.next() {
+    for component in components_iter {
         if let std::path::Component::Normal(name) = component {
             let name_str = name.to_string_lossy();
             if name_str == "Projects" || name_str == "opt" || name_str == ".vscode" {
@@ -92,10 +92,7 @@ pub fn walk_directories() {
         .into_iter()
         .filter_map(|entry_result| {
             // Skip errors
-            match entry_result {
-                Ok(entry) => Some(entry),
-                Err(_) => None
-            }
+            entry_result.ok()
         })
         .filter_map(|entry| {
             // Fast filter for ignored paths
@@ -230,7 +227,7 @@ pub fn walk_directories() {
     }
     
     if node_modules_count_print > 10 {
-        info!("  ... and {} more", locations.len().to_string());
+        info!("  ... and {} more", locations.len());
     }
     info!("Reading patterns!");
 
