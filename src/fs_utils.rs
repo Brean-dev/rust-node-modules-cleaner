@@ -232,5 +232,8 @@ pub fn walk_directories() {
     info!("Reading patterns!");
 
     let locations_pathbuff = convert_string_to_pathbuf(&locations);
+    //TODO: Returning an Vec<> from this function call will allow me to allocate and fill an big
+    //array only once, instead of mutating it often. Implement split_by_type(paths: Vec<Path>) ->
+    //Vec<PathBuf>, Vec<PathBuf> DIR AND FILES Vec
     matcher::matching_pattern(&locations_pathbuff);
 }
