@@ -1,11 +1,19 @@
 use std::path::{Path, PathBuf};
 use std::collections::HashMap;
+use once_cell::sync::Lazy;
+use std::sync::Mutex;
+
 use log::{info, debug, error, trace};
 use walkdir::WalkDir;
-
 use crate::config;
 use crate::cli::LOG_LEVEL;
 use crate::utils::iter_pattern_hits;
+
+
+//Global Vec's to store DIR and FILE paths seperately 
+pub static FILES: Lazy<Mutex<Vec<PathBuf>>> = Lazy::new(|| Mutex::new(Vec::new()));
+pub static DIRS: Lazy<Mutex<Vec<PathBuf>>> = Lazy::new(|| Mutex::new(Vec::new()));
+
 
 // Main function to match patterns against node_modules directories
 pub fn matching_pattern(paths: &Vec<PathBuf>) {
@@ -92,7 +100,7 @@ pub fn matching_pattern(paths: &Vec<PathBuf>) {
 
 // Enhanced pattern matching function with support for wildcards and case-insensitivity
 pub fn match_path_with_pattern(path_str: &str, pattern: &str) -> bool {
-    
+    let mut matches = Vec::new();  
     let mut match_result = false;
     let mut match_reason = String::new();
     
@@ -113,6 +121,7 @@ pub fn match_path_with_pattern(path_str: &str, pattern: &str) -> bool {
         
         if match_result {
             match_reason = format!("Directory pattern '{}' found in path", dir_pattern);
+            matches.push(path_str); // Add to matches vector here
         }
     }
     
@@ -147,6 +156,7 @@ pub fn match_path_with_pattern(path_str: &str, pattern: &str) -> bool {
                     } else {
                         match_reason = format!("Filename '{}' starts with '{}'", file_name, prefix);
                     }
+                    matches.push(path_str); // Add to matches vector here
                 }
             } else {
                 // Pattern like "read*me" - ensure both parts and check boundaries
@@ -171,6 +181,7 @@ pub fn match_path_with_pattern(path_str: &str, pattern: &str) -> bool {
                         match_reason = format!("Filename '{}' matches wildcard pattern '{}*{}'", 
                                              file_name, prefix, suffix);
                     }
+                    matches.push(path_str); // Add to matches vector here
                 }
             }
         }
@@ -178,14 +189,14 @@ pub fn match_path_with_pattern(path_str: &str, pattern: &str) -> bool {
     
     // Case 3: Check for exact matches
     else {
-        let path = Path::new(path_str);
-        
+        let path = Path::new(path_str); 
         // Check if pattern matches the file name exactly
         if let Some(file_name) = path.file_name() {
             if let Some(file_str) = file_name.to_str() {
                 if file_str.to_lowercase() == pattern.to_lowercase() {
                     match_result = true;
                     match_reason = format!("Exact filename match: '{}'", file_str);
+                    matches.push(path_str); // Add to matches vector here
                 }
             }
         }
@@ -197,6 +208,7 @@ pub fn match_path_with_pattern(path_str: &str, pattern: &str) -> bool {
                     if ext_str.to_lowercase() == pattern.to_lowercase() {
                         match_result = true;
                         match_reason = format!("Exact extension match: '.{}'", ext_str);
+                        matches.push(path_str); // Add to matches vector here
                     }
                 }
             }
@@ -207,6 +219,7 @@ pub fn match_path_with_pattern(path_str: &str, pattern: &str) -> bool {
             match_result = is_exact_path_segment(&path_str.to_lowercase(), &pattern.to_lowercase());
             if match_result {
                 match_reason = format!("Exact path segment match: '{}'", pattern);
+                matches.push(path_str); // Add to matches vector here
             }
         }
     }
@@ -216,6 +229,8 @@ pub fn match_path_with_pattern(path_str: &str, pattern: &str) -> bool {
         debug!("MATCH: '{}' with pattern '{}' - {}", path_str, pattern, match_reason);
     }
     
+    // Always call split_by_type with our matches
+    split_by_type(matches);
     match_result
 }
 
@@ -236,6 +251,18 @@ pub fn is_exact_path_segment(path: &str, segment: &str) -> bool {
 
 
 
-fn split_by_type(path: Vec<Path>){
-    
+fn split_by_type(path_str: Vec<&str>){
+    let mut local_files = Vec::new();
+    let mut local_dirs = Vec::new();
+
+    for s in path_str{
+        let path = Path::new(s);
+        if path.is_file(){
+            local_files.push(path.to_path_buf());
+        } else if path.is_dir(){
+            local_dirs.push(path.to_path_buf());
+        }
+    }
+    FILES.lock().unwrap().extend(local_files);
+    DIRS.lock().unwrap().extend(local_dirs);
 }
