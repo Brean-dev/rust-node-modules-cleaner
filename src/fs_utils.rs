@@ -8,6 +8,7 @@ use std::cell::RefCell;
 use log::info;
 use crate::cli;
 use crate::matcher;
+use crate::reader;
 
 // Thread-local storage for batching path operations
 thread_local! {
@@ -238,4 +239,10 @@ pub fn walk_directories() {
     //array only once, instead of mutating it often. Implement split_by_type(paths: Vec<Path>) ->
     //Vec<PathBuf>, Vec<PathBuf> DIR AND FILES Vec
     matcher::matching_pattern(&locations_pathbuff);
+    
+    // Fix by handling the Result properly
+    match reader::get_paths_size(&locations_pathbuff) {
+        Ok((bytes, mb)) => info!("Total node_modules size: {} bytes ({:.2} MB)", bytes, mb),
+        Err(err) => info!("Error calculating node_modules size: {}", err),
+    }
 }

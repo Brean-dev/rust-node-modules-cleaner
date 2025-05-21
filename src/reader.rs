@@ -1,5 +1,5 @@
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::io;
 
 /// Gets the size of a file in bytes
@@ -83,6 +83,7 @@ pub fn bytes_to_mb(bytes: u64) -> f64 {
 /// # Returns
 /// * `Ok((u64, f64))` - Tuple containing size in bytes and in megabytes
 /// * `Err` - If the path doesn't exist, isn't accessible, or has other issues
+/// Gets the size of a single path (file or directory)
 pub fn get_path_size<P: AsRef<Path>>(path: P) -> io::Result<(u64, f64)> {
     let path_ref = path.as_ref();
     
@@ -99,6 +100,26 @@ pub fn get_path_size<P: AsRef<Path>>(path: P) -> io::Result<(u64, f64)> {
     
     let size_mb = bytes_to_mb(size_bytes);
     Ok((size_bytes, size_mb))
+}
+
+/// Gets the total size of multiple paths (files and/or directories)
+///
+/// # Arguments
+/// * `paths` - A vector of paths to analyze
+///
+/// # Returns
+/// * `Ok((u64, f64))` - Tuple containing total size in bytes and in megabytes
+/// * `Err` - If any path is invalid or inaccessible
+pub fn get_paths_size(paths: &[PathBuf]) -> io::Result<(u64, f64)> {
+    let mut total_bytes = 0;
+    
+    for path in paths {
+        let (bytes, _) = get_path_size(path)?;
+        total_bytes += bytes;
+    }
+    
+    let total_mb = bytes_to_mb(total_bytes);
+    Ok((total_bytes, total_mb))
 }
 fn main(){
     

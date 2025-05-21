@@ -3,6 +3,7 @@ mod config;
 mod fs_utils;
 mod matcher;
 mod utils;
+mod reader;
 
 use std::time::Instant;
 use clap::Parser;
