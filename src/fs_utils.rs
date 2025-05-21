@@ -221,7 +221,7 @@ pub fn walk_directories() {
     info!("node_modules finding speed: {:.2} node_modules/sec", node_modules_speed);
     
     // Print a sample of found node_modules locations
-    info!("Sample of node_modules locations found:");
+    info!("Sample of node_modules locations found:\n");
     let locations = node_modules_locations.lock().unwrap();
     let display_count = std::cmp::min(locations.len(), 10); // Display up to 10 locations
     
@@ -230,7 +230,7 @@ pub fn walk_directories() {
     }
     
     if node_modules_count_print > 10 {
-        info!("  ... and {} more", locations.len());
+        info!("  ... and {} more \n", locations.len());
     }
     info!("Reading patterns!");
 
@@ -238,10 +238,12 @@ pub fn walk_directories() {
     //TODO: Returning an Vec<> from this function call will allow me to allocate and fill an big
     //array only once, instead of mutating it often. Implement split_by_type(paths: Vec<Path>) ->
     //Vec<PathBuf>, Vec<PathBuf> DIR AND FILES Vec
-    matcher::matching_pattern(&locations_pathbuff);
     
-    // Fix by handling the Result properly
-    match reader::get_paths_size(&locations_pathbuff) {
+    let mut matched_paths: Vec<PathBuf> = Vec::new();
+
+    matched_paths= matcher::matching_pattern(&locations_pathbuff);
+    
+    match reader::get_paths_size(&matched_paths) {
         Ok((bytes, mb)) => info!("Total node_modules size: {} bytes ({:.2} MB)", bytes, mb),
         Err(err) => info!("Error calculating node_modules size: {}", err),
     }

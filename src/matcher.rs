@@ -16,7 +16,7 @@ pub static DIRS: Lazy<Mutex<Vec<PathBuf>>> = Lazy::new(|| Mutex::new(Vec::new())
 
 
 // Main function to match patterns against node_modules directories
-pub fn matching_pattern(paths: &Vec<PathBuf>) {
+pub fn matching_pattern(paths: &Vec<PathBuf>) -> Vec<PathBuf>  {
     info!("Matching patterns for {:?} node_modules directories", paths.len());
     let mut results: i32 = 0;
     let mut safe_paths_array: Vec<PathBuf> = Vec::with_capacity(paths.len() * 10); // Pre-allocate more space
@@ -96,6 +96,7 @@ pub fn matching_pattern(paths: &Vec<PathBuf>) {
     if *LOG_LEVEL.lock().unwrap() == "DEBUG" {
         iter_pattern_hits(&pattern_hits);
     }
+    safe_paths_array
 }
 
 // Enhanced pattern matching function with support for wildcards and case-insensitivity
