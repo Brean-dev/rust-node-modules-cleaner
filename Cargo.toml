@@ -1,6 +1,6 @@
 [package]
 name = "node-cleaner"
-version = "0.1.3"
+version = "0.1.5"
 edition = "2024"
 
 [profile.release]
