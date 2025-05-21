@@ -21,6 +21,7 @@ once_cell = "1.18"
 # Optional - for even faster hash maps
 fxhash = { version = "0.2", optional = true }
 chrono = "0.4.41"
+indicatif = "0.17.11"
 
 [features]
 use-fxhash = ["fxhash"]
