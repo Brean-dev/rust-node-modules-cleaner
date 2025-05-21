@@ -4,6 +4,7 @@ mod fs_utils;
 mod matcher;
 mod utils;
 mod reader;
+mod remover; 
 
 use std::time::Instant;
 use clap::Parser;
