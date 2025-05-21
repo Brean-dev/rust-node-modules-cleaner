@@ -1,3 +1,5 @@
+#![allow(unused_assignments, dead_code)]
+
 mod cli;
 mod config;
 mod fs_utils;
