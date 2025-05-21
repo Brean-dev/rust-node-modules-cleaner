@@ -28,7 +28,7 @@ fn main() {
     let files = FILES.lock().unwrap();    
     let elapsed = start.elapsed();
     info!("Found {} directories", dirs.len());
-    info!("Found {} files", files.len());
+    info!("Found {} files\n", files.len());
     
     // Show up to 10 entries from the files collection
     let entries_to_show = std::cmp::min(10, files.len());
@@ -36,6 +36,6 @@ fn main() {
     for (i, file) in files.iter().take(entries_to_show).enumerate() {
         info!("  {}. {}", i + 1, file.display());
     }
-    
+    println!("\n");
     info!("Total execution time: {:.2?}", elapsed); 
 }
