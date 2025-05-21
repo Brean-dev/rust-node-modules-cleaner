@@ -250,7 +250,8 @@ pub fn is_exact_path_segment(path: &str, segment: &str) -> bool {
 }
 
 
-
+// Helper function to split files and directories into global array's 
+// Arrays in turn will be used to remove files accordingly 
 fn split_by_type(path_str: Vec<&str>){
     let mut local_files = Vec::new();
     let mut local_dirs = Vec::new();

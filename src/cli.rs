@@ -8,6 +8,8 @@ use std::sync::Mutex;
 
 // Thread-safe storage for log level
 pub static LOG_LEVEL: Lazy<Mutex<String>> = Lazy::new(|| Mutex::new(String::from("INFO")));
+// Add global flag for full scan mode
+pub static FULL_SCAN: Lazy<Mutex<bool>> = Lazy::new(|| Mutex::new(false));
 
 #[derive(Debug, Clone, Copy)]
 pub struct InfoLevel;
@@ -23,7 +25,10 @@ pub struct Cli {
     // Make arguments optional
     #[arg(short, long, required = false)]
     pub arguments: Option<String>,
-    
+   
+    #[arg(long)]
+    pub full: bool,
+
     #[command(flatten)]
     pub verbose: Verbosity<InfoLevel>,
 }
@@ -55,4 +60,6 @@ pub fn setup_logger(cli: &Cli) {
         .init();
         
     *LOG_LEVEL.lock().unwrap() = cli.verbose.log_level_filter().to_string();
+    // Store the full flag value
+    *FULL_SCAN.lock().unwrap() = cli.full;
 }

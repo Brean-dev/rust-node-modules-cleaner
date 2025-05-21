@@ -6,7 +6,7 @@ use std::sync::{Arc, Mutex, MutexGuard};
 use std::collections::{HashSet};
 use std::cell::RefCell;
 use log::info;
-
+use crate::cli;
 use crate::matcher;
 
 // Thread-local storage for batching path operations
@@ -17,22 +17,24 @@ thread_local! {
 // Optimized path ignoring function for jwalk
 pub fn is_ignored<C: jwalk::ClientState>(entry: &jwalk::DirEntry<C>) -> bool {
     let path = entry.path();
-    
-    // Fast prefix check for common system directories
-    let path_str = path.as_os_str().to_string_lossy();
-    if path_str.starts_with("/proc/") || path_str.starts_with("/sys/") || 
-       path_str.starts_with("/dev/") || path_str.starts_with("/run/") ||
-       path_str.starts_with("/efi/") || path_str.starts_with("/usr/") {
-        return true;
-    }
-    
-    // Fast component check to avoid repeated iteration
-    let components_iter = path.components();
-    for component in components_iter {
-        if let std::path::Component::Normal(name) = component {
-            let name_str = name.to_string_lossy();
-            if name_str == "Projects" || name_str == "opt" || name_str == ".vscode" {
-                return true;
+   
+    if !(*cli::FULL_SCAN.lock().unwrap()) {
+        // Fast prefix check for common system directories
+        let path_str = path.as_os_str().to_string_lossy();
+        if path_str.starts_with("/proc/") || path_str.starts_with("/sys/") || 
+            path_str.starts_with("/dev/") || path_str.starts_with("/run/") ||
+            path_str.starts_with("/efi/") || path_str.starts_with("/usr/") {
+            return true;
+        }
+
+        // Fast component check to avoid repeated iteration
+        let components_iter = path.components();
+        for component in components_iter {
+            if let std::path::Component::Normal(name) = component {
+                let name_str = name.to_string_lossy();
+                if name_str == "Projects" || name_str == "opt" || name_str == ".vscode" {
+                    return true;
+                }
             }
         }
     }
