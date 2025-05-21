@@ -11,6 +11,8 @@ use clap::Parser;
 use log::info;
 use crate::matcher::{DIRS, FILES};
 
+
+
 fn main() {
     let start = Instant::now();
     
@@ -23,8 +25,13 @@ fn main() {
         info!("Using provided arguments: {}", args);
     }
     
-    // Walk directories to find node_modules
+    // Walk directories to find node_modules with spinner
+    
+    
+    // Do the actual work
     fs_utils::walk_directories();
+    
+
     let dirs = DIRS.lock().unwrap();    
     let files = FILES.lock().unwrap();    
     let elapsed = start.elapsed();

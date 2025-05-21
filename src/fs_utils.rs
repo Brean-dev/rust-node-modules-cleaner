@@ -6,6 +6,8 @@ use std::sync::{Arc, Mutex, MutexGuard};
 use std::collections::{HashSet};
 use std::cell::RefCell;
 use log::info;
+use spinners::{Spinner, Spinners};
+
 use crate::cli;
 use crate::matcher;
 use crate::reader;
@@ -55,8 +57,10 @@ pub fn convert_string_to_pathbuf(mutex: &MutexGuard<Vec<String>>) -> Vec<PathBuf
 // Main directory walker function
 pub fn walk_directories() {
     let start = Instant::now();
-    let root_path = "/";
+    let mut sp = Spinner::new(Spinners::Dots9, "Walking through your file system".into());
     
+    let root_path = "/";
+
     // Stats tracking with pre-allocated capacity
     let file_count = Arc::new(AtomicUsize::new(0));
     let dir_count = Arc::new(AtomicUsize::new(0));
@@ -67,8 +71,9 @@ pub fn walk_directories() {
     let num_threads = std::thread::available_parallelism()
         .map(|p| p.get())
         .unwrap_or(4);
-    info!("Using {:?} threads for traversal starting from {:?}", num_threads, root_path);
     
+    info!("Using {:?} threads for traversal starting from {:?}", num_threads, root_path);
+    println!("\n");
     // Pre-allocate collections with appropriate initial capacity
     let node_modules_locations = Arc::new(Mutex::new(Vec::with_capacity(2000)));
     let node_modules_locations_clone = Arc::clone(&node_modules_locations);
@@ -192,8 +197,9 @@ pub fn walk_directories() {
     });
     
     let elapsed = start.elapsed();
-    
+    sp.stop_with_message("File scan complete!".into());
     // Print benchmark results
+    println!("\n");
     info!("----------------------------------------");
     info!("Traversal completed in {:.2?}", elapsed);
     info!("Directories scanned: {}", dir_count.load(Ordering::Relaxed));
@@ -247,4 +253,5 @@ pub fn walk_directories() {
         Ok((bytes, mb)) => info!("Total node_modules size: {} bytes ({:.2} MB)", bytes, mb),
         Err(err) => info!("Error calculating node_modules size: {}", err),
     }
+    
 }

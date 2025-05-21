@@ -5,6 +5,9 @@ use std::sync::Mutex;
 
 use log::{info, debug, error, trace};
 use walkdir::WalkDir;
+use spinners::{Spinner, Spinners};
+
+
 use crate::config;
 use crate::cli::LOG_LEVEL;
 use crate::utils::iter_pattern_hits;
@@ -13,11 +16,30 @@ use crate::utils::iter_pattern_hits;
 //Global Vec's to store DIR and FILE paths seperately 
 pub static FILES: Lazy<Mutex<Vec<PathBuf>>> = Lazy::new(|| Mutex::new(Vec::new()));
 pub static DIRS: Lazy<Mutex<Vec<PathBuf>>> = Lazy::new(|| Mutex::new(Vec::new()));
+    pub static SPINNER: Lazy<Mutex<Option<Spinner>>> = Lazy::new(|| {
+        Mutex::new(None)
+    });
+
+    // Helper function to start the spinner with optional custom message
+    pub fn start_spinner(message: Option<String>) -> () {
+        let msg = message.unwrap_or("".into());
+        let mut spinner_guard = SPINNER.lock().unwrap();
+        *spinner_guard = Some(Spinner::new(Spinners::Dots9, msg));
+    }
+
+    // Helper function to stop the spinner
+    pub fn stop_spinner() -> () {
+        let mut spinner_guard = SPINNER.lock().unwrap();
+        if let Some(mut spinner) = spinner_guard.take() {
+            spinner.stop_with_message(" ".into());
+        }
+    }
 
 
 // Main function to match patterns against node_modules directories
 pub fn matching_pattern(paths: &Vec<PathBuf>) -> Vec<PathBuf>  {
     info!("Matching patterns for {:?} node_modules directories", paths.len());
+    start_spinner(Some("Searching for safe patterns...".to_string()));
     let mut results: i32 = 0;
     let mut safe_paths_array: Vec<PathBuf> = Vec::with_capacity(paths.len() * 10); // Pre-allocate more space
     let mut pattern_hits: HashMap<String, i32> = HashMap::new();
@@ -96,6 +118,7 @@ pub fn matching_pattern(paths: &Vec<PathBuf>) -> Vec<PathBuf>  {
     if *LOG_LEVEL.lock().unwrap() == "DEBUG" {
         iter_pattern_hits(&pattern_hits);
     }
+    stop_spinner();
     safe_paths_array
 }
 
