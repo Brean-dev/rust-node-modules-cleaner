@@ -22,14 +22,14 @@ pub static SPINNER: Lazy<Mutex<Option<Spinner>>> = Lazy::new(|| {
 });
 
     // Helper function to start the spinner with optional custom message
-pub fn start_spinner(message: Option<String>) -> () {
+pub fn start_spinner(message: Option<String>)() {
     let msg = message.unwrap_or("".into());
     let mut spinner_guard = SPINNER.lock().unwrap();
     *spinner_guard = Some(Spinner::new(Spinners::Dots9, msg));
 }
 
     // Helper function to stop the spinner
-pub fn stop_spinner() -> () {
+pub fn stop_spinner()() {
     let mut spinner_guard = SPINNER.lock().unwrap();
     if let Some(mut spinner) = spinner_guard.take() {
         spinner.stop_with_message(" ".into());
