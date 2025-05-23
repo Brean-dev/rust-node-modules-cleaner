@@ -147,13 +147,15 @@ Example:
 ![Roadmap](./assets/roadmap.webp)
 ## Roadmap
 
-- [ ] Improve scanning algorithm efficiency
+- [x] Improve scanning algorithm efficiency 
+  23-05-2025 - In recent commits the efficiency has Improved with a factor of two from the original algorithm though this will always stay a point on the roadmap either way. 
 - [ ] Add size-based reporting and filtering
 - [ ] Implement interactive mode for selective cleaning
 - [ ] Add package manager integration (AUR, apt, etc.)
 - [ ] Create configuration file generator
 - [ ] Add export options (JSON, CSV)
-- [ ] Implement multithread scanning for improved performance
+- [x] Implement multithread scanning for improved performance
+23-05-2025 This has been reached by using Rayon and jWalk to run on multiple threads at once. 
 - [ ] Add visualization of space usage
 
 ## Developer Notes
