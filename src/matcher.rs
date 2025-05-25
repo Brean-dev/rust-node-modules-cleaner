@@ -25,6 +25,7 @@ pub static SPINNER: Lazy<Mutex<Option<Spinner>>> = Lazy::new(|| {
 pub fn start_spinner(message: Option<String>) -> () {
     let msg = message.unwrap_or("".into());
     let mut spinner_guard = SPINNER.lock().unwrap();
+    print!("\x1b[2K\r");
     *spinner_guard = Some(Spinner::new(Spinners::Dots9, msg));
 }
 
@@ -32,7 +33,7 @@ pub fn start_spinner(message: Option<String>) -> () {
 pub fn stop_spinner() -> () {
     let mut spinner_guard = SPINNER.lock().unwrap();
     if let Some(mut spinner) = spinner_guard.take() {
-        spinner.stop_with_message(" ".into());
+       spinner.stop_with_symbol("\x1b[32m🗸\x1b[0m"); 
     }
 }
 
@@ -40,6 +41,8 @@ pub fn stop_spinner() -> () {
 // Main function to match patterns against node_modules directories
 pub fn matching_pattern(paths: &Vec<PathBuf>) -> Vec<PathBuf>  {
     info!("Matching patterns for {:?} node_modules directories", paths.len());
+    print!("\x1b[32m🗸\x1b[0m");
+
     start_spinner(Some("Searching for safe patterns...".to_string()));
     let mut results: i32 = 0;
     let mut safe_paths_array: Vec<PathBuf> = Vec::with_capacity(paths.len() * 10); // Pre-allocate more space
@@ -51,7 +54,7 @@ pub fn matching_pattern(paths: &Vec<PathBuf>) -> Vec<PathBuf>  {
     
     match config::read_patterns() {
         Ok(config) => {
-            info!("Successfully loaded patterns config");            
+            // info!("Successfully loaded patterns config");            
             
             // Get the safe ruleset once outside the loop
             if let Some(safe_ruleset) = config.rules.get("safe") {
@@ -108,7 +111,7 @@ pub fn matching_pattern(paths: &Vec<PathBuf>) -> Vec<PathBuf>  {
             error!("Error loading patterns: {}", e);
         }
     }
-    
+    stop_spinner();
     debug!("safe_paths_array Contains: {} items", safe_paths_array.len());
     info!("Found {} files which match the `safe` pattern", results);
     debug!("Pattern hit summary:");
@@ -119,7 +122,6 @@ pub fn matching_pattern(paths: &Vec<PathBuf>) -> Vec<PathBuf>  {
     if *LOG_LEVEL.lock().unwrap() == "DEBUG" {
         iter_pattern_hits(&pattern_hits);
     }
-    stop_spinner();
     safe_paths_array
 }
 
