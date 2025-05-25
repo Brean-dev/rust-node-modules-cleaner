@@ -72,7 +72,6 @@ pub fn walk_directories() {
         .unwrap_or(4);
     
     info!("Using {:?} threads for traversal starting from {:?}", num_threads, root_path);
-    println!("\n");
     utils::start_spinner(Some("Walking through your file system!".to_string()));
     // Pre-allocate collections with appropriate initial capacity
     let node_modules_locations = Arc::new(Mutex::new(Vec::with_capacity(2000)));
@@ -199,8 +198,6 @@ pub fn walk_directories() {
     let elapsed = start.elapsed();
     utils::stop_spinner();
     // Print benchmark results
-    println!("\n");
-    info!("----------------------------------------");
     info!("Traversal completed in {:.2?}", elapsed);
     info!("Directories scanned: {}", dir_count.load(Ordering::Relaxed));
     info!("Files scanned: {}", file_count.load(Ordering::Relaxed));

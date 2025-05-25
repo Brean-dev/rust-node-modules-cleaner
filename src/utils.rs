@@ -22,19 +22,17 @@ pub fn iter_pattern_hits(hits: &HashMap<String, i32>) {
 
 
     // Helper function to start the spinner with optional custom message
-pub fn start_spinner(message: Option<String>) -> () {
+pub fn start_spinner(message: Option<String>) {
     let msg = message.unwrap_or("".into());
     let mut spinner_guard = SPINNER.lock().unwrap();
-    print!("\x1b[2K\r");
-    println!("\n");
-    *spinner_guard = Some(Spinner::new(Spinners::Hearts, msg));
+    *spinner_guard = Some(Spinner::new(Spinners::Earth, msg));
 }
 
     // Helper function to stop the spinner
-pub fn stop_spinner() -> () {
+pub fn stop_spinner() {
     let mut spinner_guard = SPINNER.lock().unwrap();
     if let Some(mut spinner) = spinner_guard.take() {
-       spinner.stop_with_symbol("\x1b[32m🗸\x1b[0m"); 
+       spinner.stop_with_symbol(""); 
     }
 }
 
