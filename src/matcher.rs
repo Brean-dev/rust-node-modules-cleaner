@@ -5,37 +5,18 @@ use std::sync::Mutex;
 
 use log::{info, debug, error, trace};
 use walkdir::WalkDir;
-use spinners::{Spinner, Spinners};
 
 
 use crate::config;
 use crate::cli::LOG_LEVEL;
-use crate::utils::iter_pattern_hits;
+use crate::utils::{iter_pattern_hits, start_spinner, stop_spinner};
 
 
 //Global Vec's to store DIR and FILE paths seperately 
 pub static FILES: Lazy<Mutex<Vec<PathBuf>>> = Lazy::new(|| Mutex::new(Vec::new()));
 pub static DIRS: Lazy<Mutex<Vec<PathBuf>>> = Lazy::new(|| Mutex::new(Vec::new()));
 
-pub static SPINNER: Lazy<Mutex<Option<Spinner>>> = Lazy::new(|| {
-    Mutex::new(None)
-});
 
-    // Helper function to start the spinner with optional custom message
-pub fn start_spinner(message: Option<String>) -> () {
-    let msg = message.unwrap_or("".into());
-    let mut spinner_guard = SPINNER.lock().unwrap();
-    print!("\x1b[2K\r");
-    *spinner_guard = Some(Spinner::new(Spinners::Dots9, msg));
-}
-
-    // Helper function to stop the spinner
-pub fn stop_spinner() -> () {
-    let mut spinner_guard = SPINNER.lock().unwrap();
-    if let Some(mut spinner) = spinner_guard.take() {
-       spinner.stop_with_symbol("\x1b[32m🗸\x1b[0m"); 
-    }
-}
 
 
 // Main function to match patterns against node_modules directories

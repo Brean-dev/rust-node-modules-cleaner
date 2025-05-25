@@ -6,8 +6,8 @@ use std::sync::{Arc, Mutex, MutexGuard};
 use std::collections::{HashSet};
 use std::cell::RefCell;
 use log::info;
-use spinners::{Spinner, Spinners};
 
+use crate::utils;
 use crate::cli;
 use crate::matcher;
 use crate::reader;
@@ -57,7 +57,6 @@ pub fn convert_string_to_pathbuf(mutex: &MutexGuard<Vec<String>>) -> Vec<PathBuf
 // Main directory walker function
 pub fn walk_directories() {
     let start = Instant::now();
-    let mut sp = Spinner::new(Spinners::Dots9, "Walking through your file system".into());
     
     let root_path = "/";
 
@@ -74,6 +73,7 @@ pub fn walk_directories() {
     
     info!("Using {:?} threads for traversal starting from {:?}", num_threads, root_path);
     println!("\n");
+    utils::start_spinner(Some("Walking through your file system!".to_string()));
     // Pre-allocate collections with appropriate initial capacity
     let node_modules_locations = Arc::new(Mutex::new(Vec::with_capacity(2000)));
     let node_modules_locations_clone = Arc::clone(&node_modules_locations);
@@ -197,7 +197,7 @@ pub fn walk_directories() {
     });
     
     let elapsed = start.elapsed();
-    sp.stop_with_message("File scan complete!".into());
+    utils::stop_spinner();
     // Print benchmark results
     println!("\n");
     info!("----------------------------------------");
