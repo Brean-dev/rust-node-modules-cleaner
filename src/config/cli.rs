@@ -29,7 +29,7 @@ impl LogLevel for InfoLevel {
 pub struct Cli {
     // Make arguments optional
     #[arg(short, long, required = false)]
-    pub arguments: Option<String>,
+    pub debug: Option<bool>,
    
     #[arg(long)]
     pub full: bool,
