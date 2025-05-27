@@ -75,9 +75,6 @@ pub fn walk_directories() {
     
     info!("Using {:?} threads for traversal starting from {:?}", num_threads, root_path);
     println!();
-    // let spinner = start_spinner("Walking through your file sytem");
-
-    // let ticks = &["📁", "📂", "📁", "📂"];
     let spinner = start_spinner("Walking file tree...", get_ticks(SpinnerTheme::FileWalker));
     // utils::g_utils::start_spinner(Some("Walking through your file system!".to_string()));
     // Pre-allocate collections with appropriate initial capacity

@@ -23,7 +23,6 @@ pub static DIRS: Lazy<Mutex<Vec<PathBuf>>> = Lazy::new(|| Mutex::new(Vec::new())
 pub fn matching_pattern(paths: &Vec<PathBuf>) -> Vec<PathBuf>  {
     info!("Matching patterns for {:?} node_modules directories", paths.len());
     println!();
-    // let ticks = &["📁", "📂", "📁", "📂"];
     let spinner = start_spinner("Matching patterns...", get_ticks(SpinnerTheme::PatternMatch));
 
     //
