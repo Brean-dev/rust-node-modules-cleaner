@@ -13,3 +13,5 @@ target/
 .release.toml
 
 scripts/*
+
+PKGBUILD
