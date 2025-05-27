@@ -14,14 +14,7 @@ fn main(){
     let start = Instant::now();
     // Parse CLI arguments and set up logging
     let cli = config::cli::Cli::parse();
-    config::cli::setup_logger(&cli);
-    
-    // Example of using the optional argument
-    if let Some(args) = &cli.arguments {
-        info!("Using provided arguments: {}", args);
-    }
-    
-    
+    config::cli::setup_logger(&cli); 
     
     // Do the actual work
     fs_utils::walk_directories(); 
