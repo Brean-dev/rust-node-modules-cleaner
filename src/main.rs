@@ -33,5 +33,8 @@ fn main(){
         info!("  {}. {}", i + 1, file.display());
     }
     println!("\n");
-    info!("Total execution time: {:.2?}", elapsed); 
+    info!("Total execution time: {:.2?}", elapsed);
+    file_utils::remover::remove_file_on_path(files.to_vec());
 }
+
+
