@@ -3,16 +3,13 @@ name: Release
 on:
   push:
     tags:
-      - "v*"
+      - 'v*'
 
 jobs:
-  build-release:
-    name: Build and Release Linux Binary
+  build-and-publish:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Install Rust
         uses: actions-rs/toolchain@v1
@@ -20,12 +17,21 @@ jobs:
           toolchain: stable
           override: true
 
-      - name: Build binary
+      - name: Build release binary
         run: cargo build --release
 
-      - name: Upload release binary
+      - name: Create GitHub Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload binary asset
         uses: softprops/action-gh-release@v1
         with:
           files: target/release/node-cleaner
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
