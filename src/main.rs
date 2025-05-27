@@ -6,17 +6,14 @@ mod fs_utils;
 mod matcher;
 mod utils;
 mod reader;
- 
-mod file_system;
+
 
 use std::time::Instant;
 use clap::Parser;
 use log::info;
 use crate::matcher::{DIRS, FILES};
 
-
 fn main() {
-    file_system::test_function();
     let start = Instant::now();
     // Parse CLI arguments and set up logging
     let cli = cli::Cli::parse();
@@ -27,7 +24,6 @@ fn main() {
         info!("Using provided arguments: {}", args);
     }
     
-    // Walk directories to find node_modules with spinner
     
     
     // Do the actual work
