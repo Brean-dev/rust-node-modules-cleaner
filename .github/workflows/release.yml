@@ -190,17 +190,8 @@ jobs:
           rpmbuild -bb ~/rpmbuild/SPECS/${BINARY_NAME}.spec
           cp ~/rpmbuild/RPMS/x86_64/${BINARY_NAME}-${VERSION}-1.*.rpm dist/
 
-      # Create release with GoReleaser
-      - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v5
-        with:
-          version: v2.4.1
-          args: release --clean
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # Upload additional artifacts
-      - name: Upload additional artifacts
+      # Upload artifacts and create release
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
@@ -208,5 +199,7 @@ jobs:
             dist/*.rpm
             dist/bin/*
           generate_release_notes: true
+          draft: false
+          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

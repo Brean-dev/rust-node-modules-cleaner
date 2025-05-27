@@ -1,25 +1,27 @@
 version: 2
+
 project_name: node-cleaner
 
 builds:
-  - id: rust-build
-    builder: rust           # Use Cargo to build the Rust project.
-    dir: .                  # Use the current directory as the working directory.
-    binary: node-cleaner    # Name the output binary "node-cleaner".
-    targets:
-      - x86_64-unknown-linux-gnu    # 64-bit Linux build.
-      - aarch64-unknown-linux-gnu   # ARM64 Linux build using GNU libc.
-    flags:
-      - --release          # Build with release optimizations.
+  - skip: true  # Skip builds since we're building manually with Rust
 
 archives:
-  - id: default
-    ids:
-      - rust-build
-    formats:
-      - tar.gz
-      - zip
-    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+  - name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    format: tar.gz
     files:
+      - dist/bin/*
       - README.md
-      - LICENSE
+      - LICENSE*
+
+release:
+  draft: false
+  prerelease: false
+  name_template: "Release {{ .Tag }}"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
