@@ -2,18 +2,17 @@
 
 mod cli;
 mod config;
-mod fs_utils;
-mod matcher;
 mod utils;
 mod reader;
-
+mod file_utils;
 
 use std::time::Instant;
 use clap::Parser;
 use log::info;
-use crate::matcher::{DIRS, FILES};
+use crate::file_utils::fs_utils;
+use crate::file_utils::matcher::{DIRS, FILES};
 
-fn main() {
+fn main(){
     let start = Instant::now();
     // Parse CLI arguments and set up logging
     let cli = cli::Cli::parse();
@@ -27,14 +26,14 @@ fn main() {
     
     
     // Do the actual work
-    fs_utils::walk_directories();
-    
+    fs_utils::walk_directories(); 
 
-    let dirs = DIRS.lock().unwrap();    
+    let _dirs = DIRS.lock().unwrap();    
     let files = FILES.lock().unwrap();    
     let elapsed = start.elapsed();
-    info!("Found {} directories", dirs.len());
-    info!("Found {} files\n", files.len());
+    
+    // debug!("Found {} directories", dirs.len());
+    // debug!("Found {} files\n", files.len());
     
     // Show up to 10 entries from the files collection
     let entries_to_show = std::cmp::min(10, files.len());
