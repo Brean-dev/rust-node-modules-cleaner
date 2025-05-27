@@ -7,6 +7,7 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:  # For manual triggering
 
 jobs:
   release:
@@ -14,12 +15,15 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Important for GoReleaser to fetch all tags
 
       - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
           override: true
+          target: aarch64-unknown-linux-musl  # Add the cross-compilation target
 
       - name: Cache Cargo registry & index
         uses: actions/cache@v3
@@ -33,9 +37,6 @@ jobs:
         uses: goreleaser/goreleaser-action@v2
         with:
           version: latest
-
-      - name: Run GoReleaser
+          args: release --clean  # Updated from --rm-dist to --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          goreleaser release --rm-dist
