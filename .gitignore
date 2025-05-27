@@ -11,3 +11,5 @@ target/
 *.pdb
 
 .release.toml
+
+scripts/*
