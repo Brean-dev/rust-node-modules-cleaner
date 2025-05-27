@@ -37,6 +37,13 @@ jobs:
       - name: Add x86_64 GNU target
         run: rustup target add x86_64-unknown-linux-gnu
 
+      # Install Zig
+      - name: Install Zig
+        run: |
+          wget https://ziglang.org/download/0.10.0/zig-linux-x86_64-0.10.0.tar.xz
+          tar -xf zig-linux-x86_64-0.10.0.tar.xz
+          sudo mv zig-linux-x86_64-0.10.0/zig /usr/local/bin/
+
       # Install cargo-zigbuild
       - name: Install cargo-zigbuild
         run: cargo install cargo-zigbuild
