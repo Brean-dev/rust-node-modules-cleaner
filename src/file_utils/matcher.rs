@@ -8,7 +8,7 @@ use walkdir::WalkDir;
 
 
 use crate::config;
-use crate::cli::LOG_LEVEL;
+use crate::config::cli::LOG_LEVEL;
 use crate::utils::g_utils::{iter_pattern_hits, start_spinner, stop_spinner, get_ticks, SpinnerTheme};
 
 
@@ -35,7 +35,7 @@ pub fn matching_pattern(paths: &Vec<PathBuf>) -> Vec<PathBuf>  {
     let max_debug_samples = 10; // Maximum number of debug samples to show per pattern
     let mut debug_sample_counts: HashMap<String, i32> = HashMap::new();
     
-    match config::read_patterns() {
+    match config::config::read_patterns() {
         Ok(config) => {
             // info!("Successfully loaded patterns config");            
             

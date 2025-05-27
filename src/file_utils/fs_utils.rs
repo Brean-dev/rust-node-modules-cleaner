@@ -10,7 +10,7 @@ use log::info;
 use super::matcher;
 
 
-use crate::cli;
+use crate::config::cli;
 use crate::utils;
 use crate::utils::g_utils::{start_spinner, stop_spinner, get_ticks, SpinnerTheme};
 
