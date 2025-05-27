@@ -65,3 +65,7 @@ pub fn stop_spinner(spinner: ProgressBar, final_message: &str) {
     println!("✔️  {}", final_message); 
 }
 
+fn print_type<T>(_: &T) { 
+    println!("{:?}", std::any::type_name::<T>());
+}
+
