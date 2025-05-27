@@ -2,8 +2,8 @@
 
 mod cli;
 mod config;
-mod utils;
 mod file_utils;
+mod utils;
 
 use std::time::Instant;
 use clap::Parser;

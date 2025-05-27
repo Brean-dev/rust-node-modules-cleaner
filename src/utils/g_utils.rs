@@ -1,13 +1,38 @@
 use std::collections::HashMap;
 use log::debug;
-use spinners::{Spinner, Spinners};
-use std::sync::Mutex; 
-use once_cell::sync::Lazy;
+use indicatif::{ProgressBar, ProgressStyle};
+use std::time::Duration;
 
+pub enum SpinnerTheme {
+    FileWalker,
+    SearchScan,
+    PatternMatch,
+}
+    // let ticks = &[];
 
-pub static SPINNER: Lazy<Mutex<Option<Spinner>>> = Lazy::new(|| {
-    Mutex::new(None)
-});
+pub fn get_ticks(theme: SpinnerTheme) -> &'static [&'static str] {
+    match theme {
+        SpinnerTheme::FileWalker => &[
+            "📁", "📁", "📁", 
+            "📂", "📂", "📂",  
+            "📁", "📁", "📁",
+            "📂", "📂", "📂",
+        ],
+        SpinnerTheme::SearchScan => &[
+            "🔍", "🔍", "🔍",
+            "🔎", "🔎", "🔎",
+            "📡", "📡", "📡",
+            "📶", "📶", "📶",
+        ],
+        SpinnerTheme::PatternMatch => &[
+            "🎯", "🎯", "🎯",
+            "🕵️", "🕵️", "🕵️",
+            "🔎", "🔎", "🔎",
+            "💡", "💡", "💡",
+        ],
+    }
+}
+
 
 // Function to iterate and display pattern hits
 pub fn iter_pattern_hits(hits: &HashMap<String, i32>) {
@@ -21,18 +46,22 @@ pub fn iter_pattern_hits(hits: &HashMap<String, i32>) {
 }
 
 
-    // Helper function to start the spinner with optional custom message
-pub fn start_spinner(message: Option<String>) {
-    let msg = message.unwrap_or("".into());
-    let mut spinner_guard = SPINNER.lock().unwrap();
-    *spinner_guard = Some(Spinner::new(Spinners::Earth, msg));
+pub fn start_spinner(message: &str, ticks: &[&str]) -> ProgressBar {
+    let spinner = ProgressBar::new_spinner();
+
+    spinner.set_style(
+        ProgressStyle::with_template("{spinner} {msg}")
+            .unwrap()
+            .tick_strings(ticks),
+    );
+
+    spinner.set_message(message.to_string());
+    spinner.enable_steady_tick(Duration::from_millis(80));
+    spinner
 }
 
-    // Helper function to stop the spinner
-pub fn stop_spinner() {
-    let mut spinner_guard = SPINNER.lock().unwrap();
-    if let Some(mut spinner) = spinner_guard.take() {
-       spinner.stop_with_symbol(""); 
-    }
+pub fn stop_spinner(spinner: ProgressBar, final_message: &str) {
+    spinner.finish_and_clear(); // Clears spinner line completely
+    println!("✔️  {}", final_message); 
 }
 

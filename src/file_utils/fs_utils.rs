@@ -12,6 +12,7 @@ use super::matcher;
 
 use crate::cli;
 use crate::utils;
+use crate::utils::g_utils::{start_spinner, stop_spinner, get_ticks, SpinnerTheme};
 
 // Thread-local storage for batching path operations
 thread_local! {
@@ -73,7 +74,12 @@ pub fn walk_directories() {
         .unwrap_or(4);
     
     info!("Using {:?} threads for traversal starting from {:?}", num_threads, root_path);
-    utils::g_utils::start_spinner(Some("Walking through your file system!".to_string()));
+    println!();
+    // let spinner = start_spinner("Walking through your file sytem");
+
+    // let ticks = &["📁", "📂", "📁", "📂"];
+    let spinner = start_spinner("Walking file tree...", get_ticks(SpinnerTheme::FileWalker));
+    // utils::g_utils::start_spinner(Some("Walking through your file system!".to_string()));
     // Pre-allocate collections with appropriate initial capacity
     let node_modules_locations = Arc::new(Mutex::new(Vec::with_capacity(2000)));
     let node_modules_locations_clone = Arc::clone(&node_modules_locations);
@@ -197,7 +203,8 @@ pub fn walk_directories() {
     });
     
     let elapsed = start.elapsed();
-    utils::g_utils::stop_spinner();
+    stop_spinner(spinner, "Done walking");
+    println!();
     // Print benchmark results
     info!("Traversal completed in {:.2?}", elapsed);
     info!("Directories scanned: {}", dir_count.load(Ordering::Relaxed));

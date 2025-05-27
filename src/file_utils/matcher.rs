@@ -9,7 +9,7 @@ use walkdir::WalkDir;
 
 use crate::config;
 use crate::cli::LOG_LEVEL;
-use crate::utils::g_utils::{iter_pattern_hits, start_spinner, stop_spinner};
+use crate::utils::g_utils::{iter_pattern_hits, start_spinner, stop_spinner, get_ticks, SpinnerTheme};
 
 
 //Global Vec's to store DIR and FILE paths seperately 
@@ -22,9 +22,12 @@ pub static DIRS: Lazy<Mutex<Vec<PathBuf>>> = Lazy::new(|| Mutex::new(Vec::new())
 // Main function to match patterns against node_modules directories
 pub fn matching_pattern(paths: &Vec<PathBuf>) -> Vec<PathBuf>  {
     info!("Matching patterns for {:?} node_modules directories", paths.len());
-    print!("\x1b[32m🗸\x1b[0m");
+    println!();
+    // let ticks = &["📁", "📂", "📁", "📂"];
+    let spinner = start_spinner("Matching patterns...", get_ticks(SpinnerTheme::PatternMatch));
 
-    start_spinner(Some("Searching for safe patterns...".to_string()));
+    //
+    // let spinner = start_spinner("Searching for safe patterns...");
     let mut results: i32 = 0;
     let mut safe_paths_array: Vec<PathBuf> = Vec::with_capacity(paths.len() * 10); // Pre-allocate more space
     let mut pattern_hits: HashMap<String, i32> = HashMap::new();
@@ -92,7 +95,8 @@ pub fn matching_pattern(paths: &Vec<PathBuf>) -> Vec<PathBuf>  {
             error!("Error loading patterns: {}", e);
         }
     }
-    stop_spinner();
+    stop_spinner(spinner, "Done matching patterns");
+    println!();
     debug!("safe_paths_array Contains: {} items", safe_paths_array.len());
     info!("Found {} files which match the `safe` pattern", results);
     debug!("Pattern hit summary:");
