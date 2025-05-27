@@ -178,6 +178,9 @@ If you encounter issues not covered here, please:
 1. Run with `-vvv` to get debug output
 2. File an issue on GitHub with the full error message and debug output
 
+
+![roadmap](./assets/roadmap.webp)
+
 ## Roadmap
 
 - [x] Improve scanning algorithm efficiency  
