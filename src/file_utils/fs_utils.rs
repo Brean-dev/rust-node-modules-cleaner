@@ -27,7 +27,8 @@ pub fn is_ignored<C: jwalk::ClientState>(entry: &jwalk::DirEntry<C>) -> bool {
         let path_str = path.as_os_str().to_string_lossy();
         if path_str.starts_with("/proc/") || path_str.starts_with("/sys/") || 
             path_str.starts_with("/dev/") || path_str.starts_with("/run/") ||
-            path_str.starts_with("/efi/") || path_str.starts_with("/usr/") {
+            path_str.starts_with("/efi/") || path_str.starts_with("/usr/") ||
+            path_str.starts_with("/mnt/"){
             return true;
         }
 
