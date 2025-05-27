@@ -7,7 +7,7 @@ use once_cell::sync::Lazy;
 use std::sync::Mutex;
 use indicatif::{MultiProgress, ProgressDrawTarget};
 use indicatif_log_bridge::LogWrapper;
-use dialoguer::theme::{ColorfulTheme, Theme};
+use dialoguer::theme::{ColorfulTheme};
 
 
 pub static DIALOG_THEME: Lazy<ColorfulTheme> = Lazy::new(ColorfulTheme::default);
