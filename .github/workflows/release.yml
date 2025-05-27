@@ -97,13 +97,19 @@ jobs:
       # Create Debian package
       - name: Create Debian package
         run: |
-          # Get version from tag
-          VERSION=${GITHUB_REF#refs/tags/v}
+          # Get version from tag or use Cargo.toml version
+          if [[ $GITHUB_REF == refs/tags/v* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/v}
+          else
+            VERSION=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].version')
+          fi
           
           # Extract package info from Cargo.toml
           DESCRIPTION=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].description')
           AUTHORS=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].authors[0]')
           REPOSITORY=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].repository')
+          
+          echo "Building Debian package for version: $VERSION"
           
           # Copy binary for deb package
           cp target/x86_64-unknown-linux-musl/release/${BINARY_NAME} dist/deb/usr/bin/
@@ -131,14 +137,20 @@ jobs:
           # Install rpm tools
           sudo apt-get install -y rpm
           
-          # Get version from tag
-          VERSION=${GITHUB_REF#refs/tags/v}
+          # Get version from tag or use Cargo.toml version
+          if [[ $GITHUB_REF == refs/tags/v* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/v}
+          else
+            VERSION=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].version')
+          fi
           
           # Extract package info from Cargo.toml
           DESCRIPTION=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].description')
           AUTHORS=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].authors[0]')
           REPOSITORY=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].repository')
           LICENSE=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].license')
+          
+          echo "Building RPM package for version: $VERSION"
           
           # Create RPM spec file
           mkdir -p ~/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
