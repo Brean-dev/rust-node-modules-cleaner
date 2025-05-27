@@ -10,9 +10,8 @@ use log::info;
 use super::matcher;
 
 
-use crate::utils;
 use crate::cli;
-use crate::reader;
+use crate::utils;
 
 // Thread-local storage for batching path operations
 thread_local! {
@@ -74,7 +73,7 @@ pub fn walk_directories() {
         .unwrap_or(4);
     
     info!("Using {:?} threads for traversal starting from {:?}", num_threads, root_path);
-    utils::start_spinner(Some("Walking through your file system!".to_string()));
+    utils::g_utils::start_spinner(Some("Walking through your file system!".to_string()));
     // Pre-allocate collections with appropriate initial capacity
     let node_modules_locations = Arc::new(Mutex::new(Vec::with_capacity(2000)));
     let node_modules_locations_clone = Arc::clone(&node_modules_locations);
@@ -198,7 +197,7 @@ pub fn walk_directories() {
     });
     
     let elapsed = start.elapsed();
-    utils::stop_spinner();
+    utils::g_utils::stop_spinner();
     // Print benchmark results
     info!("Traversal completed in {:.2?}", elapsed);
     info!("Directories scanned: {}", dir_count.load(Ordering::Relaxed));
@@ -248,7 +247,7 @@ pub fn walk_directories() {
 
     matched_paths= matcher::matching_pattern(&locations_pathbuff);
     
-    match reader::get_paths_size(&matched_paths) {
+    match utils::read_size::get_paths_size(&matched_paths) {
         Ok((bytes, mb)) => info!("Total node_modules size: {} bytes ({:.2} MB)", bytes, mb),
         Err(err) => info!("Error calculating node_modules size: {}", err),
     }

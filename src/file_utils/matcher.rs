@@ -9,7 +9,7 @@ use walkdir::WalkDir;
 
 use crate::config;
 use crate::cli::LOG_LEVEL;
-use crate::utils::{iter_pattern_hits, start_spinner, stop_spinner};
+use crate::utils::g_utils::{iter_pattern_hits, start_spinner, stop_spinner};
 
 
 //Global Vec's to store DIR and FILE paths seperately 

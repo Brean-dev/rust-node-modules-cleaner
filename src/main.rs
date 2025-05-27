@@ -3,7 +3,6 @@
 mod cli;
 mod config;
 mod utils;
-mod reader;
 mod file_utils;
 
 use std::time::Instant;
