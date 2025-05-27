@@ -185,7 +185,7 @@ If you encounter issues not covered here, please:
 - [ ] Add size-based reporting and filtering
 - [ ] Implement interactive mode for selective cleaning
 - [x] Add package manager integration (AUR, apt, etc.)
-  *27-05-2025: Added YAY AUR install*
+*27-05-2025: Added YAY AUR install*
 - [ ] Create configuration file generator
 - [ ] Add export options (JSON, CSV)
 - [x] Implement multithread scanning for improved performance  
@@ -257,3 +257,15 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 3. Commit your changes (`git commit -m 'Add some amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
+
+## Disclaimer
+
+**USE AT YOUR OWN RISK**: This tool modifies your file system by deleting files and directories. While it's designed to be safe, I am not responsible for any data loss or damage that may occur from using this software.
+
+- Always review the files marked for deletion before confirming
+- Consider backing up important projects before running this tool
+- Test on non-critical directories first
+- No warranty is provided, express or implied
+- By using this tool, you acknowledge and accept these risks
+
+Remember that node_modules can sometimes contain modified files or custom patches that might be critical to your project.
