@@ -4,7 +4,8 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub Workflow Status](https://img.shields.io/badge/status-WIP-orange)](https://github.com/Breinss/rust-node-modules-cleaner)
-[![Version](https://img.shields.io/badge/version-0.2.0-blue)](https://github.com/Breinss/rust-node-modules-cleaner/releases/tag/v0.2.0)
+[![Version](https://img.shields.io/github/v/release/Breinss/rust-node-modules-cleaner?label=version)](https://github.com/Breinss/rust-node-modules-cleaner/releases/latest)
+
 > ⚠️ **Work in Progress** - Not yet available via package managers
 
 A lightning-fast CLI tool written in Rust that scans your system for `node_modules` directories and helps you safely clean them up to reclaim disk space.
