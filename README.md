@@ -1,27 +1,24 @@
 ![header](./assets/logo.webp)
 
-
-
-# node-modules-scanner
+# node-cleaner
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub Workflow Status](https://img.shields.io/badge/status-WIP-orange)](https://github.com/Breinss/rust-node-modules-cleaner)
 
-
 > ⚠️ **Work in Progress** - Not yet available via package managers
 
-A lightning-fast CLI tool that scans and identifies unnecessary or oversized `node_modules` directories across your system.
+A lightning-fast CLI tool written in Rust that scans your system for `node_modules` directories and helps you safely clean them up to reclaim disk space.
 
-## Why
+## Overview
 
-JavaScript projects are notorious for creating massive `node_modules` directories that:
+JavaScript and Node.js projects are notorious for creating massive `node_modules` directories that:
 
 - Consume gigabytes of disk space
 - Slow down backups and file indexing
 - Create redundant copies across projects
-- Include unnecessary files for production
+- Include unnecessary files for production use
 
-Existing tools either lack speed, configurability, or system-wide scanning capabilities. This project aims to solve these issues with a fast Rust implementation that can be distributed via Linux package managers for easy installation and updates.
+`node-cleaner` is designed to help you identify and safely remove unnecessary files from these directories, reclaiming valuable disk space without breaking your projects.
 
 ## Description
 
@@ -46,9 +43,7 @@ Existing tools either lack speed, configurability, or system-wide scanning capab
 
 ## Installation
 
-> ⚠️ Not yet available via package managers
-
-For now, you can build and install manually:
+### From Source (Current Method)
 
 ```bash
 # Clone the repository
@@ -60,44 +55,65 @@ cd rust-node-modules-cleaner
 # Build the project
 cargo build --release
 
-# Optional: Install to your system (requires appropriate permissions)
-# sudo cp target/release/node-cleaner /usr/local/bin/
+# Optional: Install to your system
+sudo cp target/release/node-cleaner /usr/local/bin/
+```
+
+### Arch Linux
+
+```bash
+yay -S node-cleaner
 ```
 
 ## Usage
 
-Basic usage:
+### Basic Commands
 
 ```bash
-# Scan system-wide with default settings
+# Run a basic scan in the current directory and subdirectories
 node-cleaner
 
-# Specify verbosity level
+# Run with debug output
+node-cleaner --debug true
+
+# Enable verbose logging (multiple levels available)
 node-cleaner -v     # Verbose output
-node-cleaner -vv    # Very verbose output
-node-cleaner -vvv   # Debug output
+node-cleaner -vv    # More detailed output
+node-cleaner -vvv   # Debug-level output
 
-# Scan with custom arguments
-node-cleaner --arguments "custom_arg"
+# Run a full scan (includes more thorough analysis)
+node-cleaner --full
 ```
 
-Output example:
+### Example Output
 
 ```
-[INFO] Successfully loaded patterns config
-[INFO] Total amount of directories found: 42
-[INFO] Found 156 files which match the `safe` pattern
+✅ Successfully loaded patterns config
+📂 Scanning directories...
+🔍 Found 42 node_modules directories
+💡 Identified 156 files safe to remove (3.2 GB potential savings)
+⚠️ Found 23 files requiring caution (0.8 GB)
+❌ Found 5 potentially unsafe files (0.1 GB)
+
+Files to clean:
+  1. /home/user/projects/webapp/node_modules/package/tests (45.2 MB)
+  2. /home/user/projects/api/node_modules/module/examples (230.5 MB)
+  ...
+
+Would you like to remove these files? [Y/n]
 ```
 
 ## Configuration
 
-The tool uses a JSON configuration file to define pattern matching rules. Each rule set contains patterns to match and items to ignore.
-This JSON is included into the binary when built, if you'd like to adjust the JSON you would need to edit it before using:
+The tool uses a pattern-matching system to identify which files are safe to remove. These patterns are defined in a JSON configuration file.
 
-```bash
-cargo build --release
-```
-Example:
+### Pattern Categories
+
+- **Safe**: Files that are generally safe to remove (documentation, tests, examples)
+- **Caution**: Files that might be needed in some cases (images, CSS, HTML)
+- **Danger**: Files that are likely needed for the package to function (source code, compiled assets)
+
+### Configuration Format
 
 ```json
 {
@@ -109,11 +125,8 @@ Example:
             ".npmignore",
             "license",
             "*.md",
-            "*.markdown",
-            ".gitignore",
-            "examples",
-            "tests"
-            // ... other safe patterns
+            "examples/",
+            "tests/"
         ],
         "ignore": [
             "validate-npm-package-license",
@@ -127,95 +140,120 @@ Example:
             "*.jpg",
             "*.html",
             "*.css"
-            // ... other files to use with caution
         ],
         "ignore": []
     },
     
     "danger": {
         "patterns": [
-            "*.coffee",
+            "*.js",
             "*.ts",
-            ".bin",
-            "*.min.js"
-            // ... other potentially risky patterns
+            ".bin/",
+            "dist/"
         ],
         "ignore": []
     }
 }
 ```
-![Roadmap](./assets/roadmap.webp)
+
+## Troubleshooting
+
+### Common Issues
+
+**Permission Denied Errors**
+- Ensure you have read access to all directories being scanned
+- For system-wide cleaning, you may need to run with sudo
+
+**No Files Found**
+- Check that you're running the command in a directory containing Node.js projects
+- Try using the `--full` flag for a more thorough scan
+
+**Program Crashes During Scan**
+- This may occur when scanning very large directory structures
+- Try running with less verbose output (remove `-v` flags)
+
+### Getting Help
+
+If you encounter issues not covered here, please:
+1. Run with `-vvv` to get debug output
+2. File an issue on GitHub with the full error message and debug output
+
 ## Roadmap
 
-- [x] Improve scanning algorithm efficiency 
-  23-05-2025 - In recent commits the efficiency has Improved with a factor of two from the original algorithm though this will always stay a point on the roadmap either way. 
+- [x] Improve scanning algorithm efficiency  
+  *23-05-2025: Improved by factor of two from original algorithm*
 - [ ] Add size-based reporting and filtering
 - [ ] Implement interactive mode for selective cleaning
-- [ ] Add package manager integration (AUR, apt, etc.)
+- [x] Add package manager integration (AUR, apt, etc.)
+  *27-05-2025: Added YAY AUR install*
 - [ ] Create configuration file generator
 - [ ] Add export options (JSON, CSV)
-- [x] Implement multithread scanning for improved performance
-23-05-2025 This has been reached by using Rayon and jWalk to run on multiple threads at once. 
+- [x] Implement multithread scanning for improved performance  
+  *23-05-2025: Implemented using Rayon and jWalk for multithreaded operation*
 - [ ] Add visualization of space usage
 
-## Developer Notes
+## System Requirements
+
+- Linux-based operating system (tested on Ubuntu, Arch)
+- May work on macOS (untested)
+- Not compatible with Windows
+
+![Linux-Only](./assets/linux.webp)
+
+## For Developers
 
 ### Project Structure
 
 ```
 rust-node-modules-cleaner/
 ├── src/
-│   └── main.rs        # Core application logic
-├── patterns.json      # Pattern matching configuration
-├── Cargo.toml         # Project dependencies
-└── README.md          # This file
+│   ├── main.rs                # Entry point and main logic
+│   ├── config/                # Configuration handling
+│   │   ├── mod.rs
+│   │   ├── cli.rs             # Command-line interface
+│   │   ├── config.rs          # Configuration loading
+│   │   └── patterns.json      # Default patterns
+│   ├── file_utils/            # File system operations
+│   │   ├── mod.rs
+│   │   ├── fs_utils.rs        # File system utilities
+│   │   ├── matcher.rs         # Pattern matching
+│   │   └── remover.rs         # File removal
+│   └── utils/                 # General utilities
+│       ├── mod.rs
+│       ├── g_utils.rs         # UI helpers
+│       └── read_size.rs       # Size calculation
+├── Cargo.toml                 # Dependencies
+├── PKGBUILD                   # Arch packaging
+└── README.md                  # This file
 ```
 
 ### Building for Different Platforms
-
-To build for various Linux distributions:
 
 ```bash
 # Build for current platform
 cargo build --release
 
-# Cross-compile for different targets (requires appropriate tools)
-# rustup target add x86_64-unknown-linux-gnu
-# cargo build --release --target=x86_64-unknown-linux-gnu
+# Cross-compile (requires appropriate rust targets)
+rustup target add x86_64-unknown-linux-gnu
+cargo build --release --target=x86_64-unknown-linux-gnu
 ```
 
-### Contributing
+### Running Tests
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+```bash
+cargo test
+```
 
 ## License
 
-This project is licensed under the MIT License - see below for details:
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-```
-MIT License
+## Contributing
 
-Copyright (c) 2025 Breinss
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
-
-Only tested with Linux, might work on macOS, most definetly will not work on Windows
-
-![Linux-Only](https://raw.githubusercontent.com/Breinss/rust-node-modules-cleaner/refs/heads/main/assets/linux.webp)
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
