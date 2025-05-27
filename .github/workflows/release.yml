@@ -43,6 +43,7 @@ jobs:
           wget https://ziglang.org/download/0.10.0/zig-linux-x86_64-0.10.0.tar.xz
           tar -xf zig-linux-x86_64-0.10.0.tar.xz
           sudo mv zig-linux-x86_64-0.10.0/zig /usr/local/bin/
+          rm -rf zig-linux-x86_64-0.10.0.tar.xz zig-linux-x86_64-0.10.0/
 
       # Install cargo-zigbuild
       - name: Install cargo-zigbuild
