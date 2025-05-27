@@ -1,6 +1,6 @@
 [package]
 name = "node-cleaner"
-version = "0.2.11"
+version = "0.2.1"
 edition = "2024"
 authors = ["Brean", ""]
 description = "A tool for cleaning and managing node_modules directories"
