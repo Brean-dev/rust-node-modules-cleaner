@@ -9,7 +9,7 @@ on:
       - 'v*'
 
 jobs:
-  build-and-publish:
+  release:
     runs-on: ubuntu-latest
 
     steps:
@@ -21,21 +21,22 @@ jobs:
           toolchain: stable
           override: true
 
-      - name: Build release binary
-        run: cargo build --release
-
-      - name: Create GitHub Release
-        id: create_release
-        uses: softprops/action-gh-release@v1
+      - name: Cache Cargo registry & index
+        uses: actions/cache@v3
         with:
-          tag_name: ${{ github.ref_name }}
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Install GoReleaser
+        uses: goreleaser/goreleaser-action@v2
+        with:
+          version: latest
+
+      - name: Run GoReleaser
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload binary asset
-        uses: softprops/action-gh-release@v1
-        with:
-          files: target/release/node-cleaner
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          goreleaser release --rm-dist
 
