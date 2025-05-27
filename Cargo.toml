@@ -7,6 +7,13 @@ description = "A tool for cleaning and managing node_modules directories"
 repository = "https://github.com/Breinss/rust-node-modules-cleaner"
 homepage = ""
 license = "MIT"
+keywords = ["cli", "node", "cleanup", "disk-space"]
+categories = ["command-line-utilities"]
+
+
+[[bin]]
+name = "node-cleaner"
+path = "src/main.rs"
 
 [profile.release]
 codegen-units = 1
