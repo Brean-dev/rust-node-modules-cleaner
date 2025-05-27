@@ -16,3 +16,5 @@ scripts/*
 
 PKGBUILD
 .SRCINFO
+.goreleaser.yml
+
