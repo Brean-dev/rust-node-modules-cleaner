@@ -12,6 +12,8 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
+    env:
+      BINARY_NAME: node-cleaner
 
     steps:
       - uses: actions/checkout@v4
@@ -85,9 +87,6 @@ jobs:
           mkdir -p dist/deb/usr/bin
           mkdir -p dist/rpm
           
-          # Replace 'your-actual-binary-name' with the actual binary name
-          BINARY_NAME="node-cleaner"
-          
           # Copy binaries
           cp target/x86_64-unknown-linux-musl/release/$BINARY_NAME dist/bin/$BINARY_NAME-x86_64-linux
           cp target/aarch64-unknown-linux-musl/release/$BINARY_NAME dist/bin/$BINARY_NAME-aarch64-linux
@@ -101,23 +100,30 @@ jobs:
           # Get version from tag
           VERSION=${GITHUB_REF#refs/tags/v}
           
+          # Extract package info from Cargo.toml
+          DESCRIPTION=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].description')
+          AUTHORS=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].authors[0]')
+          REPOSITORY=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].repository')
+          
           # Copy binary for deb package
-          cp target/x86_64-unknown-linux-musl/release/rust-cli dist/deb/usr/bin/
+          cp target/x86_64-unknown-linux-musl/release/${BINARY_NAME} dist/deb/usr/bin/
           
           # Create Debian control file
           cat > dist/deb/DEBIAN/control << EOF
-          Package: rust-cli
+          Package: ${BINARY_NAME}
           Version: ${VERSION}
           Section: utils
           Priority: optional
           Architecture: amd64
-          Maintainer: Your Name <your.email@example.com>
-          Description: Your Rust CLI application
-           A description of your CLI tool.
+          Maintainer: ${AUTHORS} <noreply@github.com>
+          Description: ${DESCRIPTION}
+           ${DESCRIPTION}.
+           This utility helps developers clean up disk space by finding and
+           removing unused node_modules directories.
           EOF
           
           # Build the deb package
-          dpkg-deb --build dist/deb dist/rust-cli_${VERSION}_amd64.deb
+          dpkg-deb --build dist/deb dist/${BINARY_NAME}_${VERSION}_amd64.deb
 
       # Create RPM package
       - name: Create RPM package
@@ -128,21 +134,29 @@ jobs:
           # Get version from tag
           VERSION=${GITHUB_REF#refs/tags/v}
           
+          # Extract package info from Cargo.toml
+          DESCRIPTION=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].description')
+          AUTHORS=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].authors[0]')
+          REPOSITORY=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].repository')
+          LICENSE=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].license')
+          
           # Create RPM spec file
           mkdir -p ~/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
           
-          cat > ~/rpmbuild/SPECS/rust-cli.spec << EOF
-          Name:           rust-cli
+          cat > ~/rpmbuild/SPECS/${BINARY_NAME}.spec << EOF
+          Name:           ${BINARY_NAME}
           Version:        ${VERSION}
           Release:        1%{?dist}
-          Summary:        Your Rust CLI application
+          Summary:        ${DESCRIPTION}
           
-          License:        MIT
-          URL:            https://github.com/${{ github.repository }}
+          License:        ${LICENSE}
+          URL:            ${REPOSITORY}
           Source0:        %{name}-%{version}.tar.gz
           
           %description
-          A description of your CLI tool.
+          ${DESCRIPTION}.
+          This utility helps developers clean up disk space by finding and
+          removing unused node_modules directories.
           
           %prep
           
@@ -150,19 +164,19 @@ jobs:
           
           %install
           mkdir -p %{buildroot}/usr/bin
-          cp $GITHUB_WORKSPACE/target/x86_64-unknown-linux-musl/release/rust-cli %{buildroot}/usr/bin/
+          cp $GITHUB_WORKSPACE/target/x86_64-unknown-linux-musl/release/${BINARY_NAME} %{buildroot}/usr/bin/
           
           %files
-          /usr/bin/rust-cli
+          /usr/bin/${BINARY_NAME}
           
           %changelog
-          * $(date +'%a %b %d %Y') GitHub Actions <noreply@github.com> - ${VERSION}-1
-          - Automated build
+          * $(date +'%a %b %d %Y') ${AUTHORS} <noreply@github.com> - ${VERSION}-1
+          - Automated build from version ${VERSION}
           EOF
           
           # Build RPM
-          rpmbuild -bb ~/rpmbuild/SPECS/rust-cli.spec
-          cp ~/rpmbuild/RPMS/x86_64/rust-cli-${VERSION}-1.*.rpm dist/
+          rpmbuild -bb ~/rpmbuild/SPECS/${BINARY_NAME}.spec
+          cp ~/rpmbuild/RPMS/x86_64/${BINARY_NAME}-${VERSION}-1.*.rpm dist/
 
       # Create release with GoReleaser
       - name: Run GoReleaser
