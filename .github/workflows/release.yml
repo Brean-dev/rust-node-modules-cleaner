@@ -23,7 +23,13 @@ jobs:
         with:
           toolchain: stable
           override: true
-          target: aarch64-unknown-linux-musl
+
+      - name: Add build targets
+        run: |
+          rustup target add x86_64-unknown-linux-gnu
+          rustup target add x86_64-unknown-linux-musl
+          rustup target add aarch64-unknown-linux-gnu
+          rustup target add aarch64-unknown-linux-musl
 
       - name: Cache Cargo registry & index
         uses: actions/cache@v3
@@ -33,11 +39,13 @@ jobs:
             ~/.cargo/git
           key: cargo-${{ hashFiles('**/Cargo.lock') }}
 
-      # Install additional required targets
-      - name: Add x86_64 GNU target
-        run: rustup target add x86_64-unknown-linux-gnu
+      # Install cross-compilation tools
+      - name: Install cross-compilation dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu musl-tools
 
-      # Install Zig
+      # Install Zig for cross-compilation
       - name: Install Zig
         run: |
           wget https://ziglang.org/download/0.10.0/zig-linux-x86_64-0.10.0.tar.xz
@@ -47,14 +55,119 @@ jobs:
           rm -rf zig-linux-x86_64-0.10.0.tar.xz
           zig version
 
-      # Install cargo-zigbuild
       - name: Install cargo-zigbuild
         run: cargo install cargo-zigbuild
 
-      - name: Install GoReleaser
-        uses: goreleaser/goreleaser-action@v2
+      # Build static binaries
+      - name: Build static binaries
+        run: |
+          # x86_64 static binary
+          cargo zigbuild --release --target x86_64-unknown-linux-musl
+          
+          # aarch64 static binary
+          cargo zigbuild --release --target aarch64-unknown-linux-musl
+
+      # Create directories for packaging
+      - name: Prepare packaging directories
+        run: |
+          mkdir -p dist/bin
+          mkdir -p dist/deb/DEBIAN
+          mkdir -p dist/deb/usr/bin
+          mkdir -p dist/rpm
+          
+          # Copy binaries
+          cp target/x86_64-unknown-linux-musl/release/rust-cli dist/bin/rust-cli-x86_64-linux
+          cp target/aarch64-unknown-linux-musl/release/rust-cli dist/bin/rust-cli-aarch64-linux
+          
+          # Make binaries executable
+          chmod +x dist/bin/*
+
+      # Create Debian package
+      - name: Create Debian package
+        run: |
+          # Get version from tag
+          VERSION=${GITHUB_REF#refs/tags/v}
+          
+          # Copy binary for deb package
+          cp target/x86_64-unknown-linux-musl/release/rust-cli dist/deb/usr/bin/
+          
+          # Create Debian control file
+          cat > dist/deb/DEBIAN/control << EOF
+          Package: rust-cli
+          Version: ${VERSION}
+          Section: utils
+          Priority: optional
+          Architecture: amd64
+          Maintainer: Your Name <your.email@example.com>
+          Description: Your Rust CLI application
+           A description of your CLI tool.
+          EOF
+          
+          # Build the deb package
+          dpkg-deb --build dist/deb dist/rust-cli_${VERSION}_amd64.deb
+
+      # Create RPM package
+      - name: Create RPM package
+        run: |
+          # Install rpm tools
+          sudo apt-get install -y rpm
+          
+          # Get version from tag
+          VERSION=${GITHUB_REF#refs/tags/v}
+          
+          # Create RPM spec file
+          mkdir -p ~/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
+          
+          cat > ~/rpmbuild/SPECS/rust-cli.spec << EOF
+          Name:           rust-cli
+          Version:        ${VERSION}
+          Release:        1%{?dist}
+          Summary:        Your Rust CLI application
+          
+          License:        MIT
+          URL:            https://github.com/${{ github.repository }}
+          Source0:        %{name}-%{version}.tar.gz
+          
+          %description
+          A description of your CLI tool.
+          
+          %prep
+          
+          %build
+          
+          %install
+          mkdir -p %{buildroot}/usr/bin
+          cp $GITHUB_WORKSPACE/target/x86_64-unknown-linux-musl/release/rust-cli %{buildroot}/usr/bin/
+          
+          %files
+          /usr/bin/rust-cli
+          
+          %changelog
+          * $(date +'%a %b %d %Y') GitHub Actions <noreply@github.com> - ${VERSION}-1
+          - Automated build
+          EOF
+          
+          # Build RPM
+          rpmbuild -bb ~/rpmbuild/SPECS/rust-cli.spec
+          cp ~/rpmbuild/RPMS/x86_64/rust-cli-${VERSION}-1.*.rpm dist/
+
+      # Create release with GoReleaser
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v5
         with:
           version: latest
           args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Upload additional artifacts
+      - name: Upload additional artifacts
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            dist/*.deb
+            dist/*.rpm
+            dist/bin/*
+          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
