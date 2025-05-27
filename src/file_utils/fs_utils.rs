@@ -251,9 +251,9 @@ pub fn walk_directories() {
 
     matched_paths= matcher::matching_pattern(&locations_pathbuff);
     
-    match utils::read_size::get_paths_size(&matched_paths) {
-        Ok((bytes, mb)) => info!("Total node_modules size: {} bytes ({:.2} MB)", bytes, mb),
-        Err(err) => info!("Error calculating node_modules size: {}", err),
-    }
+    // match utils::read_size::get_paths_size(&matched_paths) {
+    //     Ok((bytes, mb)) => info!("Total node_modules size: {} bytes ({:.2} MB)", bytes, mb),
+    //     Err(err) => info!("Error calculating node_modules size: {}", err),
+    // }
     
 }

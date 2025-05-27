@@ -97,7 +97,7 @@ pub fn matching_pattern(paths: &Vec<PathBuf>) -> Vec<PathBuf>  {
     stop_spinner(spinner, "Done matching patterns");
     println!();
     debug!("safe_paths_array Contains: {} items", safe_paths_array.len());
-    info!("Found {} files which match the `safe` pattern", results);
+    // info!("Found {} files which match the `safe` pattern", results);
     debug!("Pattern hit summary:");
     for (pattern, count) in &pattern_hits {
         debug!("  - '{}': {} matches", pattern, count);

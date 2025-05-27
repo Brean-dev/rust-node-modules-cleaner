@@ -34,7 +34,7 @@ fn main(){
     }
     println!("\n");
     info!("Total execution time: {:.2?}", elapsed);
-    file_utils::remover::remove_file_on_path(files.to_vec());
+    file_utils::remover::remove_file_on_path(files.to_vec(), dirs.to_vec(), true);
 }
 
 
