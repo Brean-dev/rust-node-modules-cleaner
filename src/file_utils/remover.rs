@@ -51,4 +51,3 @@ pub fn remove_file_on_path(files: Vec<PathBuf>, dirs: Vec<PathBuf>, debug_mode: 
         warn!("User aborted deletion.");
     }
 }
-
