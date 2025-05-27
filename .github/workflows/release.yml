@@ -24,6 +24,11 @@ jobs:
           toolchain: stable
           override: true
 
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+
       - name: Add build targets
         run: |
           rustup target add x86_64-unknown-linux-gnu
@@ -66,6 +71,11 @@ jobs:
           
           # aarch64 static binary
           cargo zigbuild --release --target aarch64-unknown-linux-musl
+          
+          # List built binaries for debugging
+          find target/ -name "*" -type f -executable
+          ls -la target/x86_64-unknown-linux-musl/release/
+          ls -la target/aarch64-unknown-linux-musl/release/
 
       # Create directories for packaging
       - name: Prepare packaging directories
@@ -75,9 +85,12 @@ jobs:
           mkdir -p dist/deb/usr/bin
           mkdir -p dist/rpm
           
+          # Replace 'your-actual-binary-name' with the actual binary name
+          BINARY_NAME="node-cleaner"
+          
           # Copy binaries
-          cp target/x86_64-unknown-linux-musl/release/rust-cli dist/bin/rust-cli-x86_64-linux
-          cp target/aarch64-unknown-linux-musl/release/rust-cli dist/bin/rust-cli-aarch64-linux
+          cp target/x86_64-unknown-linux-musl/release/$BINARY_NAME dist/bin/$BINARY_NAME-x86_64-linux
+          cp target/aarch64-unknown-linux-musl/release/$BINARY_NAME dist/bin/$BINARY_NAME-aarch64-linux
           
           # Make binaries executable
           chmod +x dist/bin/*
