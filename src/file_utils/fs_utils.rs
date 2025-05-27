@@ -11,7 +11,6 @@ use super::matcher;
 
 
 use crate::config::cli;
-use crate::utils;
 use crate::utils::g_utils::{start_spinner, stop_spinner, get_ticks, SpinnerTheme};
 
 // Thread-local storage for batching path operations
@@ -246,7 +245,7 @@ pub fn walk_directories() {
     //TODO: Returning an Vec<> from this function call will allow me to allocate and fill an big
     //array only once, instead of mutating it often. Implement split_by_type(paths: Vec<Path>) ->
     //Vec<PathBuf>, Vec<PathBuf> DIR AND FILES Vec
-    
+    #[allow(unused_variables)]
     let mut matched_paths: Vec<PathBuf> = Vec::new();
 
     matched_paths= matcher::matching_pattern(&locations_pathbuff);

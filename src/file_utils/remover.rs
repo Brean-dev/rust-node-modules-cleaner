@@ -22,12 +22,6 @@ pub fn remove_file_on_path(files: Vec<PathBuf>, dirs: Vec<PathBuf>, debug_mode: 
 
     if debug_mode {
         warn!("Debug mode is ON. No files will be deleted.");
-        for file in &files {
-            // info!("[DEBUG] Would delete file: {}", file.display());
-        }
-        for dir in &dirs {
-            // info!("[DEBUG] Would delete directory: {}", dir.display());
-        }
         return;
     }
 

@@ -25,8 +25,7 @@ pub fn matching_pattern(paths: &Vec<PathBuf>) -> Vec<PathBuf>  {
     println!();
     let spinner = start_spinner("Matching patterns...", get_ticks(SpinnerTheme::PatternMatch));
 
-    //
-    // let spinner = start_spinner("Searching for safe patterns...");
+    #[allow(unused_variables)]
     let mut results: i32 = 0;
     let mut safe_paths_array: Vec<PathBuf> = Vec::with_capacity(paths.len() * 10); // Pre-allocate more space
     let mut pattern_hits: HashMap<String, i32> = HashMap::new();
