@@ -1,5 +1,6 @@
 use jwalk::WalkDirGeneric;
 use log::info;
+use std::alloc::alloc;
 use std::cell::RefCell;
 use std::collections::HashSet;
 use std::path::PathBuf;
@@ -10,7 +11,7 @@ use std::time::Instant;
 use super::matcher;
 
 use crate::config::cli;
-use crate::utils::g_utils::{get_ticks, start_spinner, stop_spinner, SpinnerTheme};
+use crate::utils::g_utils::{SpinnerTheme, get_ticks, start_spinner, stop_spinner};
 
 // Thread-local storage for batching path operations
 thread_local! {
@@ -104,7 +105,8 @@ pub fn walk_directories() {
     let node_modules_count_clone = Arc::clone(&node_modules_count);
     let ignored_count_clone = Arc::clone(&ignored_count);
 
-    // Process walker
+    // Process walkrer
+    #[allow(clippy::unnecessary_filter_map)]
     let processed = walker
         .into_iter()
         .filter_map(|entry_result| {
@@ -140,11 +142,7 @@ pub fn walk_directories() {
                 should_skip
             };
 
-            if should_skip {
-                None
-            } else {
-                Some(entry)
-            }
+            if should_skip { None } else { Some(entry) }
         })
         .filter_map(|entry| {
             if entry.file_type.is_dir() {
@@ -255,16 +253,9 @@ pub fn walk_directories() {
     info!("Reading patterns!");
 
     let locations_pathbuff = convert_string_to_pathbuf(&locations);
-    //TODO: Returning an Vec<> from this function call will allow me to allocate and fill an big
-    //array only once, instead of mutating it often. Implement split_by_type(paths: Vec<Path>) ->
-    //Vec<PathBuf>, Vec<PathBuf> DIR AND FILES Vec
+
     #[allow(unused_variables)]
     let mut matched_paths: Vec<PathBuf> = Vec::new();
 
     matched_paths = matcher::matching_pattern(&locations_pathbuff);
-
-    // match utils::read_size::get_paths_size(&matched_paths) {
-    //     Ok((bytes, mb)) => info!("Total node_modules size: {} bytes ({:.2} MB)", bytes, mb),
-    //     Err(err) => info!("Error calculating node_modules size: {}", err),
-    // }
 }
