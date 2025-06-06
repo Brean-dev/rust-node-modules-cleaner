@@ -1,6 +1,5 @@
 use jwalk::WalkDirGeneric;
 use log::info;
-use std::alloc::alloc;
 use std::cell::RefCell;
 use std::collections::HashSet;
 use std::path::PathBuf;
@@ -15,7 +14,7 @@ use crate::utils::g_utils::{SpinnerTheme, get_ticks, start_spinner, stop_spinner
 
 // Thread-local storage for batching path operations
 thread_local! {
-    static LOCAL_NODE_MODULES: RefCell<Vec<String>> = RefCell::new(Vec::with_capacity(50));
+     static LOCAL_NODE_MODULES: RefCell<Vec<String>> = RefCell::new(Vec::with_capacity(50));
 }
 
 // Optimized path ignoring function for jwalk
