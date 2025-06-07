@@ -13,6 +13,9 @@ categories = ["command-line-utilities"]
 [[bin]]
 name = "node-cleaner"
 path = "src/main.rs"
+[[bin]]
+name = "tui"
+path = "src/tui/tui.rs"
 
 [profile.release]
 codegen-units = 1
@@ -35,6 +38,8 @@ chrono = "0.4.41"
 indicatif = "0.17.11"
 indicatif-log-bridge = "0.2.3"
 dialoguer = "0.11.0"
+color-eyre = "0.6.5"
+ratatui = "0.29.0"
 
 [features]
 use-fxhash = ["fxhash"]
