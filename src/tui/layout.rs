@@ -2,11 +2,10 @@ use ratatui::layout::{Constraint, Direction, Layout, Rect};
 
 /// Holds the layout areas for the application
 #[derive(Debug)]
-#[allow(dead_code)]
 pub struct AppLayout {
     pub header: Rect,
     pub content: Rect,
-    pub status: Rect,
+    pub _status: Rect,
     // Add more areas as needed
 }
 
@@ -25,7 +24,7 @@ impl AppLayout {
         Self {
             header: vertical[0],
             content: vertical[1],
-            status: vertical[2],
+            _status: vertical[2],
         }
     }
 
