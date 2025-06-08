@@ -4,7 +4,7 @@ mod widgets;
 
 use app::App;
 use crossterm::{
-    event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyEventKind},
+    event::{self, DisableMouseCapture, EnableMouseCapture, KeyCode, KeyEventKind},
     execute,
     terminal::{EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode},
 };
@@ -31,7 +31,7 @@ fn run(terminal: &mut Terminal<impl Backend>, app: &mut App) -> io::Result<()> {
 
 fn ui(frame: &mut Frame, app: &App) {
     // Create the layout
-    let layout = AppLayout::new(frame.size());
+    let layout = AppLayout::new(frame.area());
 
     // Create and render the header widget
     let header = HeaderWidget::new(app.username.clone());

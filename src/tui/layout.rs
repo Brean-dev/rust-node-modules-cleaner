@@ -2,6 +2,7 @@ use ratatui::layout::{Constraint, Direction, Layout, Rect};
 
 /// Holds the layout areas for the application
 #[derive(Debug)]
+#[allow(dead_code)]
 pub struct AppLayout {
     pub header: Rect,
     pub content: Rect,
