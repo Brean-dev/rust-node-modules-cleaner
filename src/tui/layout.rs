@@ -6,7 +6,6 @@ pub struct AppLayout {
     pub header: Rect,
     pub content: Rect,
     pub _status: Rect,
-    // Add more areas as needed
 }
 
 impl AppLayout {
