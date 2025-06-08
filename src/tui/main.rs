@@ -12,7 +12,7 @@ use layout::AppLayout;
 use ratatui::backend::CrosstermBackend;
 use ratatui::prelude::*;
 use std::io;
-use widgets::{ContentWidget, HeaderWidget};
+use widgets::{ContentWidget, HeaderWidget, SidebarWidget};
 
 #[allow(clippy::collapsible_if)]
 fn run(terminal: &mut Terminal<impl Backend>, app: &mut App) -> io::Result<()> {
@@ -36,10 +36,12 @@ fn ui(frame: &mut Frame, app: &App) {
     // Create and render the header widget
     let header = HeaderWidget::new(app.username.clone());
     frame.render_widget(HeaderWidget::widget(&header), layout.header);
-    let sidebar = ContentWidget::new(app.content.clone());
     // Get content areas
-    let main_content = layout.content_areas();
-    frame.render_widget(ContentWidget::widget(&sidebar), main_content.0);
+    let main_layout = layout.content_areas();
+    let sidebar = SidebarWidget::new(app.sidebar_title.clone());
+    let main_content = ContentWidget::new(app.content_title.clone());
+    frame.render_widget(SidebarWidget::widget(&sidebar), main_layout.0);
+    frame.render_widget(ContentWidget::widget(&main_content), main_layout.1);
     // Render other widgets...
     // You can create more custom widgets in widgets.rs and render them here
 }

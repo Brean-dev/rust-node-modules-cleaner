@@ -10,6 +10,10 @@ pub struct HeaderWidget {
     username: String,
 }
 
+pub struct SidebarWidget {
+    content: String,
+}
+
 pub struct ContentWidget {
     content: String,
 }
@@ -23,19 +27,38 @@ impl HeaderWidget {
         let current_time = Utc::now().format("%Y-%m-%d %H:%M:%S").to_string();
 
         Paragraph::new(vec![Line::from(vec![
-            Span::raw(Cow::from("Time (UTC): ")),
+            Span::raw(Cow::from("Time: ")),
             Span::styled(Cow::from(current_time), Style::default().fg(Color::Yellow)),
             Span::raw(Cow::from(" | User: ")),
             Span::styled(
                 Cow::from(self.username.clone()),
-                Style::default().fg(Color::Green),
+                Style::default().fg(Color::Yellow),
             ),
         ])])
         .block(
             Block::default()
                 .borders(Borders::ALL)
-                .border_style(Style::default().fg(Color::Blue))
-                .title(Cow::from("System Info")),
+                .border_style(Style::default().fg(Color::Yellow))
+                .title(Cow::from("Header")),
+        )
+    }
+}
+
+impl SidebarWidget {
+    pub fn new(content: String) -> Self {
+        Self { content }
+    }
+
+    pub fn widget(&self) -> Paragraph<'static> {
+        Paragraph::new(vec![Line::from(vec![Span::styled(
+            Cow::from(self.content.clone()),
+            Style::default().fg(Color::LightRed),
+        )])])
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .border_style(Style::default().fg(Color::LightRed))
+                .title(Cow::from("Sidebar")),
         )
     }
 }
@@ -48,13 +71,13 @@ impl ContentWidget {
     pub fn widget(&self) -> Paragraph<'static> {
         Paragraph::new(vec![Line::from(vec![Span::styled(
             Cow::from(self.content.clone()),
-            Style::default().fg(Color::Green),
+            Style::default().fg(Color::Magenta),
         )])])
         .block(
             Block::default()
                 .borders(Borders::ALL)
-                .border_style(Style::default().fg(Color::Blue))
-                .title(Cow::from("Sidebar")),
+                .border_style(Style::default().fg(Color::Magenta))
+                .title(Cow::from("Content")),
         )
     }
 }
