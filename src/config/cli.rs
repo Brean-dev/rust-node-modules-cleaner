@@ -1,14 +1,13 @@
 use clap::Parser;
 use clap_verbosity_flag::{LogLevel, Verbosity};
+use dialoguer::theme::ColorfulTheme;
 use env_logger::fmt::Color;
-use log::Level;
-use std::io::Write;
-use once_cell::sync::Lazy;
-use std::sync::Mutex;
 use indicatif::{MultiProgress, ProgressDrawTarget};
 use indicatif_log_bridge::LogWrapper;
-use dialoguer::theme::{ColorfulTheme};
-
+use log::Level;
+use once_cell::sync::Lazy;
+use std::io::Write;
+use std::sync::Mutex;
 
 pub static DIALOG_THEME: Lazy<ColorfulTheme> = Lazy::new(ColorfulTheme::default);
 // Thread-safe storage for log level
@@ -30,14 +29,13 @@ pub struct Cli {
     // Make arguments optional
     #[arg(short, long, required = false)]
     pub debug: Option<bool>,
-   
+
     #[arg(long)]
     pub full: bool,
 
     #[command(flatten)]
     pub verbose: Verbosity<InfoLevel>,
 }
-
 
 pub fn setup_logger(cli: &Cli) {
     let mp = MultiProgress::with_draw_target(ProgressDrawTarget::stderr());
