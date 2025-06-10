@@ -1,14 +1,14 @@
 #![allow(unused_assignments, dead_code)]
-
+// Mods
 mod config;
 mod file_utils;
 mod tui;
 mod utils;
-
+// Native crates
 use crate::config::cli;
 use crate::file_utils::fs_utils;
 use crate::file_utils::matcher::{DIRS, FILES};
-
+// Non native crates
 use clap::Parser;
 use log::{debug, error, info};
 use std::time::Instant;
@@ -43,5 +43,9 @@ fn main() {
             dirs.to_vec(),
             cli.debug.unwrap_or(false),
         );
+    } else {
+        if let Err(e) = tui::engine::run_tui() {
+            error!("TUI error: {}", e);
+        }
     }
 }

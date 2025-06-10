@@ -54,7 +54,7 @@ fn ui(frame: &mut Frame, app: &app::App) {
     // You can create more custom widgets in widgets.rs and render them here
 }
 
-fn main() -> io::Result<()> {
+pub fn run_tui() -> io::Result<()> {
     // Setup terminal
     enable_raw_mode()?;
     let mut stdout = io::stdout();
