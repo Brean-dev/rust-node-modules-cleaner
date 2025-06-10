@@ -14,6 +14,8 @@ pub static DIALOG_THEME: Lazy<ColorfulTheme> = Lazy::new(ColorfulTheme::default)
 pub static LOG_LEVEL: Lazy<Mutex<String>> = Lazy::new(|| Mutex::new(String::from("INFO")));
 // Add global flag for full scan mode
 pub static FULL_SCAN: Lazy<Mutex<bool>> = Lazy::new(|| Mutex::new(false));
+// Add global flag for tui mode
+pub static TUI_MODE: Lazy<Mutex<bool>> = Lazy::new(|| Mutex::new(false));
 
 #[derive(Debug, Clone, Copy)]
 pub struct InfoLevel;
@@ -33,7 +35,7 @@ pub struct Cli {
     #[arg(short, long, required = false)]
     pub tui: Option<bool>,
 
-    #[arg(long)]
+    #[arg(short, long, required = false)]
     pub full: bool,
 
     #[command(flatten)]
@@ -65,6 +67,7 @@ pub fn setup_logger(cli: &Cli) {
 
     *LOG_LEVEL.lock().unwrap() = cli.verbose.log_level_filter().to_string();
     *FULL_SCAN.lock().unwrap() = cli.full;
+    *TUI_MODE.lock().unwrap() = cli.tui.unwrap_or(false);
 }
 
 pub fn ask_yes_no(prompt: &str) -> bool {
