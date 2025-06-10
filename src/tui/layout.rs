@@ -31,7 +31,7 @@ impl AppLayout {
     pub fn content_areas(&self) -> (Rect, Rect) {
         let horizontal = Layout::default()
             .direction(Direction::Horizontal)
-            .constraints([Constraint::Percentage(40), Constraint::Percentage(60)])
+            .constraints([Constraint::Percentage(30), Constraint::Percentage(70)])
             .split(self.content);
 
         (horizontal[0], horizontal[1])
