@@ -16,7 +16,6 @@ use std::path::PathBuf;
 fn run(terminal: &mut Terminal<impl Backend>, app: &mut app::App) -> io::Result<()> {
     loop {
         terminal.draw(|frame| ui(frame, app))?;
-        // Handle events here
         if let event::Event::Key(key) = event::read()? {
             if key.kind == KeyEventKind::Press {
                 if key.code == KeyCode::Esc {
@@ -28,6 +27,7 @@ fn run(terminal: &mut Terminal<impl Backend>, app: &mut app::App) -> io::Result<
 }
 
 fn ui(frame: &mut Frame, app: &app::App) {
+    // Temp fake data for testing
     let paths = vec![
         PathBuf::from("/home/user/Documents/file1.txt"),
         PathBuf::from("/home/user/Downloads/file2.png"),
@@ -39,19 +39,19 @@ fn ui(frame: &mut Frame, app: &app::App) {
 
     // Create and render the header widget
     let header = widgets::HeaderWidget::new(app.username.clone());
+
     // Get content areas
     let main_layout = layout.content_areas();
-    let _sidebar = widgets::SidebarWidget::new(app.sidebar_title.clone());
     let main_content = widgets::ContentWidget::new(app.content_title.clone());
     let tree_widget = widgets::PathTreeWidget::new(paths);
+
     frame.render_widget(widgets::HeaderWidget::widget(&header), layout.header);
 
-    //frame.render_widget(SidebarWidget::widget(&sidebar), main_layout.0);
     frame.render_widget(widgets::ContentWidget::widget(&main_content), main_layout.1);
 
     frame.render_widget(widgets::PathTreeWidget::widget(&tree_widget), main_layout.0);
+
     // Render other widgets...
-    // You can create more custom widgets in widgets.rs and render them here
 }
 
 pub fn run_tui() -> io::Result<()> {
