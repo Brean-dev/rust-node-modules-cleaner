@@ -2,6 +2,7 @@
 
 mod config;
 mod file_utils;
+mod tui;
 mod utils;
 
 use crate::file_utils::fs_utils;

@@ -1,22 +1,19 @@
-mod app;
-mod layout;
-mod widgets;
+use super::app;
+use super::layout;
+use super::widgets;
 
-use app::App;
 use crossterm::{
     event::{self, DisableMouseCapture, EnableMouseCapture, KeyCode, KeyEventKind},
     execute,
     terminal::{EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode},
 };
-use layout::AppLayout;
 use ratatui::backend::CrosstermBackend;
 use ratatui::prelude::*;
 use std::io;
 use std::path::PathBuf;
-use widgets::{ContentWidget, HeaderWidget, PathTreeWidget, SidebarWidget};
 
 #[allow(clippy::collapsible_if)]
-fn run(terminal: &mut Terminal<impl Backend>, app: &mut App) -> io::Result<()> {
+fn run(terminal: &mut Terminal<impl Backend>, app: &mut app::App) -> io::Result<()> {
     loop {
         terminal.draw(|frame| ui(frame, app))?;
         // Handle events here
@@ -30,7 +27,7 @@ fn run(terminal: &mut Terminal<impl Backend>, app: &mut App) -> io::Result<()> {
     }
 }
 
-fn ui(frame: &mut Frame, app: &App) {
+fn ui(frame: &mut Frame, app: &app::App) {
     let paths = vec![
         PathBuf::from("/home/user/Documents/file1.txt"),
         PathBuf::from("/home/user/Downloads/file2.png"),
@@ -38,21 +35,21 @@ fn ui(frame: &mut Frame, app: &App) {
         PathBuf::from("relative/path/to/file3.rs"),
     ];
     // Create the layout
-    let layout = AppLayout::new(frame.area());
+    let layout = layout::AppLayout::new(frame.area());
 
     // Create and render the header widget
-    let header = HeaderWidget::new(app.username.clone());
+    let header = widgets::HeaderWidget::new(app.username.clone());
     // Get content areas
     let main_layout = layout.content_areas();
-    let sidebar = SidebarWidget::new(app.sidebar_title.clone());
-    let main_content = ContentWidget::new(app.content_title.clone());
-    let tree_widget = PathTreeWidget::new(paths);
-    frame.render_widget(HeaderWidget::widget(&header), layout.header);
+    let _sidebar = widgets::SidebarWidget::new(app.sidebar_title.clone());
+    let main_content = widgets::ContentWidget::new(app.content_title.clone());
+    let tree_widget = widgets::PathTreeWidget::new(paths);
+    frame.render_widget(widgets::HeaderWidget::widget(&header), layout.header);
 
     //frame.render_widget(SidebarWidget::widget(&sidebar), main_layout.0);
-    frame.render_widget(ContentWidget::widget(&main_content), main_layout.1);
+    frame.render_widget(widgets::ContentWidget::widget(&main_content), main_layout.1);
 
-    frame.render_widget(PathTreeWidget::widget(&tree_widget), main_layout.0);
+    frame.render_widget(widgets::PathTreeWidget::widget(&tree_widget), main_layout.0);
     // Render other widgets...
     // You can create more custom widgets in widgets.rs and render them here
 }
@@ -66,7 +63,7 @@ fn main() -> io::Result<()> {
     let mut terminal = Terminal::new(backend)?;
 
     // Create app state
-    let mut app = App::new();
+    let mut app = app::App::new();
 
     // Run the app
     let res = run(&mut terminal, &mut app);

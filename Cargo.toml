@@ -13,13 +13,12 @@ categories = ["command-line-utilities"]
 [[bin]]
 name = "node-cleaner"
 path = "src/main.rs"
-[[bin]]
-name = "tui"
-path = "src/tui/main.rs"
+
 
 [profile.release]
 codegen-units = 1
 lto = "fat"
+
 
 [dependencies]
 jwalk = "0.8"
@@ -45,6 +44,3 @@ crossterm = "0.29.0"
 
 [features]
 use-fxhash = ["fxhash"]
-
-[build]
-rustflags = ["-C", "target-cpu=native"]

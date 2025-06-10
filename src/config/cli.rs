@@ -30,6 +30,9 @@ pub struct Cli {
     #[arg(short, long, required = false)]
     pub debug: Option<bool>,
 
+    #[arg(short, long, required = false)]
+    pub tui: Option<bool>,
+
     #[arg(long)]
     pub full: bool,
 
