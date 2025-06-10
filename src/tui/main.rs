@@ -12,7 +12,8 @@ use layout::AppLayout;
 use ratatui::backend::CrosstermBackend;
 use ratatui::prelude::*;
 use std::io;
-use widgets::{ContentWidget, HeaderWidget, SidebarWidget};
+use std::path::PathBuf;
+use widgets::{ContentWidget, HeaderWidget, PathTreeWidget, SidebarWidget};
 
 #[allow(clippy::collapsible_if)]
 fn run(terminal: &mut Terminal<impl Backend>, app: &mut App) -> io::Result<()> {
@@ -30,18 +31,28 @@ fn run(terminal: &mut Terminal<impl Backend>, app: &mut App) -> io::Result<()> {
 }
 
 fn ui(frame: &mut Frame, app: &App) {
+    let paths = vec![
+        PathBuf::from("/home/user/Documents/file1.txt"),
+        PathBuf::from("/home/user/Downloads/file2.png"),
+        PathBuf::from("/etc/config.yaml"),
+        PathBuf::from("relative/path/to/file3.rs"),
+    ];
     // Create the layout
     let layout = AppLayout::new(frame.area());
 
     // Create and render the header widget
     let header = HeaderWidget::new(app.username.clone());
-    frame.render_widget(HeaderWidget::widget(&header), layout.header);
     // Get content areas
     let main_layout = layout.content_areas();
     let sidebar = SidebarWidget::new(app.sidebar_title.clone());
     let main_content = ContentWidget::new(app.content_title.clone());
-    frame.render_widget(SidebarWidget::widget(&sidebar), main_layout.0);
+    let tree_widget = PathTreeWidget::new(paths);
+    frame.render_widget(HeaderWidget::widget(&header), layout.header);
+
+    //frame.render_widget(SidebarWidget::widget(&sidebar), main_layout.0);
     frame.render_widget(ContentWidget::widget(&main_content), main_layout.1);
+
+    frame.render_widget(PathTreeWidget::widget(&tree_widget), main_layout.0);
     // Render other widgets...
     // You can create more custom widgets in widgets.rs and render them here
 }
