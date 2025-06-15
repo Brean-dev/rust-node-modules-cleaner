@@ -50,8 +50,6 @@ fn ui(frame: &mut Frame, app: &app::App) {
     frame.render_widget(widgets::ContentWidget::widget(&main_content), main_layout.1);
 
     frame.render_widget(widgets::PathTreeWidget::widget(&tree_widget), main_layout.0);
-
-    // Render other widgets...
 }
 
 pub fn run_tui() -> io::Result<()> {

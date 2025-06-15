@@ -1,5 +1,6 @@
 pub struct App {
     pub username: String,
+    #[allow(dead_code)]
     pub sidebar_title: String,
     pub content_title: String,
 }
