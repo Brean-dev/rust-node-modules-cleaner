@@ -18,7 +18,8 @@ fn main() {
     // Parse CLI arguments and set up logging
     let cli = config::cli::Cli::parse();
     config::cli::setup_logger(&cli);
-
+    let _load_config = config::parse_settings::parse_config();
+    info!("{:?}", config::parse_settings::read_config("hello"));
     if !*cli::TUI_MODE.lock().unwrap() {
         // Do the actual work
         fs_utils::walk_directories();
@@ -44,6 +45,7 @@ fn main() {
             cli.debug.unwrap_or(false),
         );
     } else {
+        #[allow(clippy::collapsible_else_if)]
         if let Err(e) = tui::engine::run_tui() {
             error!("TUI error: {}", e);
         }
