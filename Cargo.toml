@@ -41,6 +41,7 @@ color-eyre = "0.6.5"
 ratatui = "0.29.0"
 io = "0.0.2"
 crossterm = "0.29.0"
+simple_config_parser = "1.0.0"
 
 [features]
 use-fxhash = ["fxhash"]
