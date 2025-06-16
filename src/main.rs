@@ -19,6 +19,9 @@ fn main() {
     let cli = config::cli::Cli::parse();
     config::cli::setup_logger(&cli);
     let _load_config = config::parse_settings::parse_config();
+    let _load_custom_patterns = config::parse_custom_paterns::get_default_patterns();
+
+    info!("{:?}", _load_custom_patterns);
     info!("{:?}", config::parse_settings::read_config("hello"));
     if !*cli::TUI_MODE.lock().unwrap() {
         // Do the actual work
