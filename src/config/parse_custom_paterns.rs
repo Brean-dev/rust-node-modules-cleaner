@@ -1,24 +1,15 @@
-use std::collections::HashMap;
 use std::path::Path;
-use std::sync::Mutex;
 use std::{env, fs};
 
-use once_cell::sync::Lazy;
 use serde_json::{Value, from_str};
 
-//pub static CONFIG_VALUES: Lazy<HashMap<String, String>> = Lazy::new(HashMap<String, String>);
-pub static PATTERNS_VALUE: Lazy<Mutex<HashMap<String, Vec<String>>>> =
-    Lazy::new(|| Mutex::new(HashMap::new()));
+//pub static PATTERNS_VALUE: Lazy<Mutex<HashMap<String, Vec<String>>>> =   Lazy::new(|| Mutex::new(HashMap::new()));
 
 pub fn get_default_patterns() -> Result<Vec<String>, Box<dyn std::error::Error>> {
     let home_dir = env::var("HOME")?;
     let user_config = format!("{}/.config/node-module-cleaner/patterns.json", home_dir);
 
-    let config_paths = [
-        "/etc/node-module-cleaner/patterns.json",
-        "./patterns.json",
-        &user_config,
-    ];
+    let config_paths = ["/etc/node-module-cleaner/patterns.json", &user_config];
 
     for path in &config_paths {
         if Path::new(path).exists() {
