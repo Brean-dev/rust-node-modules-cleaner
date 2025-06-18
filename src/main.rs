@@ -14,15 +14,7 @@ use log::{debug, error, info};
 use std::time::Instant;
 
 fn main() {
-    let _validate_settings = config::config_validator::validate_startup_config();
-
-    info!(
-        "{}",
-        *config::config_validator::CONFIG_CHECK.lock().unwrap()
-    );
-    if *config::config_validator::CONFIG_CHECK.lock().unwrap() {
-        start_walking();
-    }
+    start_walking();
 }
 
 fn start_walking() {
@@ -42,13 +34,6 @@ fn start_walking() {
         }
         std::process::exit(1);
     }
-    //let _load_config = config::parse_settings::parse_config();
-    //let _load_custom_patterns = config::parse_custom_paterns::get_default_patterns();
-    //let _all_settings = config::parse_settings::get_all_settings();
-
-    //for (key, value) in _all_settings {
-    //    info!("{} | {}", key, value);
-    //}
 
     //info!("{:?}", _load_custom_patterns);
     if !*config::cli::TUI_MODE.lock().unwrap() {
@@ -70,11 +55,7 @@ fn start_walking() {
         }
         println!("\n");
         info!("Total execution time: {:.2?}", elapsed);
-        file_utils::remover::remove_file_on_path(
-            files.to_vec(),
-            dirs.to_vec(),
-            cli.debug.unwrap_or(false),
-        );
+        file_utils::remover::remove_file_on_path(files.to_vec(), dirs.to_vec());
     } else {
         #[allow(clippy::collapsible_else_if)]
         if let Err(e) = tui::engine::run_tui() {
