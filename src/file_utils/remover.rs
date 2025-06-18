@@ -1,10 +1,11 @@
 use crate::config::cli::ask_yes_no;
-use crate::utils::read_size::{get_paths_size};
+use crate::config::parse_settings::get_setting;
+use crate::utils::read_size::get_paths_size;
+use log::{error, info, warn};
 use std::fs;
 use std::path::PathBuf;
-use log::{info, error, warn};
 
-pub fn remove_file_on_path(files: Vec<PathBuf>, dirs: Vec<PathBuf>, debug_mode: bool) {
+pub fn remove_file_on_path(files: Vec<PathBuf>, dirs: Vec<PathBuf>) {
     // Combine all paths for a single size calculation
     let mut all_paths = Vec::with_capacity(files.len() + dirs.len());
     all_paths.extend(files.iter().cloned());
@@ -12,7 +13,10 @@ pub fn remove_file_on_path(files: Vec<PathBuf>, dirs: Vec<PathBuf>, debug_mode: 
 
     match get_paths_size(&all_paths) {
         Ok((total_bytes, total_mb)) => {
-            info!("Total target size: {} bytes ({:.2} MB)", total_bytes, total_mb);
+            info!(
+                "Total target size: {} bytes ({:.2} MB)",
+                total_bytes, total_mb
+            );
             info!("Files: {}, Directories: {}", files.len(), dirs.len());
         }
         Err(e) => {
@@ -20,7 +24,11 @@ pub fn remove_file_on_path(files: Vec<PathBuf>, dirs: Vec<PathBuf>, debug_mode: 
         }
     }
 
-    if debug_mode {
+    let debug: bool = get_setting("debug")
+        .and_then(|s| s.parse().ok())
+        .unwrap_or(false);
+
+    if debug {
         warn!("Debug mode is ON. No files will be deleted.");
         return;
     }
