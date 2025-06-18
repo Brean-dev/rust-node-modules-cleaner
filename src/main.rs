@@ -5,25 +5,42 @@ mod file_utils;
 mod tui;
 mod utils;
 // Native crates
-use crate::config::cli;
 use crate::file_utils::fs_utils;
 use crate::file_utils::matcher::{DIRS, FILES};
+
 // Non native crates
 use clap::Parser;
 use log::{debug, error, info};
 use std::time::Instant;
 
 fn main() {
+    let _validate_settings = config::config_validator::validate_startup_config();
+
+    info!(
+        "{}",
+        *config::config_validator::CONFIG_CHECK.lock().unwrap()
+    );
+    if *config::config_validator::CONFIG_CHECK.lock().unwrap() {
+        start_walking();
+    }
+}
+
+fn start_walking() {
     let start = Instant::now();
     // Parse CLI arguments and set up logging
     let cli = config::cli::Cli::parse();
     config::cli::setup_logger(&cli);
-    let _load_config = config::parse_settings::parse_config();
-    let _load_custom_patterns = config::parse_custom_paterns::get_default_patterns();
 
-    info!("{:?}", _load_custom_patterns);
-    info!("{:?}", config::parse_settings::read_config("hello"));
-    if !*cli::TUI_MODE.lock().unwrap() {
+    //let _load_config = config::parse_settings::parse_config();
+    //let _load_custom_patterns = config::parse_custom_paterns::get_default_patterns();
+    //let _all_settings = config::parse_settings::get_all_settings();
+
+    //for (key, value) in _all_settings {
+    //    info!("{} | {}", key, value);
+    //}
+
+    //info!("{:?}", _load_custom_patterns);
+    if !*config::cli::TUI_MODE.lock().unwrap() {
         // Do the actual work
         fs_utils::walk_directories();
 

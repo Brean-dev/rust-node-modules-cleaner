@@ -48,6 +48,15 @@ pub fn parse_config() -> Result<(), ConfigError> {
     Err(ConfigError::NoFileDefined)
 }
 
-pub fn read_config(key: &str) -> Option<String> {
+pub fn get_setting(key: &str) -> Option<String> {
     CONFIG_VALUES.lock().unwrap().get(key).cloned()
+}
+
+pub fn get_all_settings() -> Vec<(String, String)> {
+    CONFIG_VALUES
+        .lock()
+        .unwrap()
+        .iter()
+        .map(|(k, v)| (k.clone(), v.clone()))
+        .collect()
 }
