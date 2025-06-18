@@ -3,6 +3,7 @@ use log::{error, info, warn};
 use once_cell::sync::Lazy;
 use std::path::Path;
 use std::sync::Mutex;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 pub static CONFIG_CHECK: Lazy<Mutex<bool>> = Lazy::new(|| Mutex::new(false));
 
@@ -76,13 +77,27 @@ pub fn validate_startup_config() -> ConfigValidation {
     validation
 }
 
+static LOGGER_INITIALIZED: AtomicBool = AtomicBool::new(false);
+
+pub fn set_logger_initialized() {
+    LOGGER_INITIALIZED.store(true, Ordering::Relaxed);
+}
+
 fn _validation_error(message: &str, validation: &mut ConfigValidation) {
-    error!("{}", message);
+    if LOGGER_INITIALIZED.load(Ordering::Relaxed) {
+        error!("{}", message);
+    } else {
+        eprintln!("ERROR: {}", message);
+    }
     validation.errors.push(message.to_string());
     validation.valid = false;
 }
 
 fn _validation_warning(message: &str, validation: &mut ConfigValidation) {
-    warn!("{}", message);
+    if LOGGER_INITIALIZED.load(Ordering::Relaxed) {
+        warn!("{}", message);
+    } else {
+        eprintln!("WARNING: {}", message);
+    }
     validation.warnings.push(message.to_string());
 }

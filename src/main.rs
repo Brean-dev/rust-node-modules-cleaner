@@ -31,6 +31,17 @@ fn start_walking() {
     let cli = config::cli::Cli::parse();
     config::cli::setup_logger(&cli);
 
+    // Mark logger as initialized
+    config::config_validator::set_logger_initialized();
+
+    // Now run validation - errors will use proper logger
+    let validation = config::config_validator::validate_startup_config();
+    if !validation.valid {
+        for error in &validation.errors {
+            error!("Configuration error: {}", error);
+        }
+        std::process::exit(1);
+    }
     //let _load_config = config::parse_settings::parse_config();
     //let _load_custom_patterns = config::parse_custom_paterns::get_default_patterns();
     //let _all_settings = config::parse_settings::get_all_settings();
