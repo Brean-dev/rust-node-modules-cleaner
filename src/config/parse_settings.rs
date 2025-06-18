@@ -1,10 +1,9 @@
+use once_cell::sync::Lazy;
 use simple_config_parser::ConfigError;
 use std::collections::HashMap;
 use std::path::Path;
-use std::{env, fs};
-
-use once_cell::sync::Lazy;
 use std::sync::Mutex;
+use std::{env, fs};
 
 //pub static CONFIG_VALUES: Lazy<HashMap<String, String>> = Lazy::new(HashMap<String, String>);
 pub static CONFIG_VALUES: Lazy<Mutex<HashMap<String, String>>> =
@@ -44,7 +43,6 @@ pub fn parse_config() -> Result<(), ConfigError> {
             return Ok(());
         }
     }
-
     Err(ConfigError::NoFileDefined)
 }
 
