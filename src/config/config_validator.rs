@@ -1,11 +1,13 @@
-use crate::config::parse_settings::{get_all_settings, get_setting};
+use crate::config::parse_settings::{get_all_settings, get_setting, parse_config};
 use log::{error, info, warn};
 use once_cell::sync::Lazy;
-use std::path::Path;
+use std::env;
+use std::path::PathBuf;
 use std::sync::Mutex;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 pub static CONFIG_CHECK: Lazy<Mutex<bool>> = Lazy::new(|| Mutex::new(false));
+static LOGGER_INITIALIZED: AtomicBool = AtomicBool::new(false);
 
 pub struct ConfigValidation {
     pub valid: bool,
@@ -20,6 +22,15 @@ pub fn validate_startup_config() -> ConfigValidation {
         errors: Vec::new(),
         warnings: Vec::new(),
     };
+
+    // Parse the config file first!
+    if let Err(e) = parse_config() {
+        _validation_warning(
+            &format!("Could not parse config file: {:?}", e),
+            &mut validation,
+        );
+        // Continue with validation even if no config file is found
+    }
 
     let _all_settings = get_all_settings();
     for (key, value) in _all_settings {
@@ -46,29 +57,30 @@ pub fn validate_startup_config() -> ConfigValidation {
     }
 
     if let Some(custom_pattern_location) = get_setting("custom_pattern_location") {
-        let path = Path::new(&custom_pattern_location);
+        let path = expand_tilde(&custom_pattern_location);
+
         // Check if the path exists
         if !path.exists() {
             let _wrn_msg = format!(
-                "Custom pattern location does not exist: {}",
-                custom_pattern_location
+                "Custom pattern location does not exist: \"{}\"",
+                path.display()
             );
             _validation_warning(&_wrn_msg, &mut validation);
         }
         // Optionally, check if it's a file (not a directory)
         else if !path.is_file() {
             let _err_msg = format!(
-                "Custom pattern location is not a file: {}",
-                custom_pattern_location
+                "Custom pattern location is not a file: \"{}\"",
+                path.display()
             );
-
             _validation_warning(&_err_msg, &mut validation);
         }
         // Optionally, check if the file is readable
-        else if let Err(e) = std::fs::File::open(path) {
+        else if let Err(e) = std::fs::File::open(&path) {
             let _err_msg = format!(
                 "Cannot read custom pattern location {}: {}",
-                custom_pattern_location, e
+                path.display(),
+                e
             );
             _validation_error(&_err_msg, &mut validation);
         }
@@ -76,8 +88,6 @@ pub fn validate_startup_config() -> ConfigValidation {
     *CONFIG_CHECK.lock().unwrap() = true;
     validation
 }
-
-static LOGGER_INITIALIZED: AtomicBool = AtomicBool::new(false);
 
 pub fn set_logger_initialized() {
     LOGGER_INITIALIZED.store(true, Ordering::Relaxed);
@@ -101,3 +111,14 @@ fn _validation_warning(message: &str, validation: &mut ConfigValidation) {
     }
     validation.warnings.push(message.to_string());
 }
+
+fn expand_tilde(path: &str) -> PathBuf {
+    #[allow(clippy::manual_strip)]
+    if path.starts_with("~/") {
+        if let Ok(home) = env::var("HOME") {
+            return PathBuf::from(home).join(&path[2..]);
+        }
+    }
+    PathBuf::from(path)
+}
+
